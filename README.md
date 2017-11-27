@@ -1,4 +1,6 @@
-Installation:
+![screenshot](screenshot.png)
+
+### Installation:
 
 ```
 $ virtualenv venv
