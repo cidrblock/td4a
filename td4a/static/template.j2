@@ -1,0 +1,238 @@
+{# add in some vars typically set during the ansible run #}
+{% for key, value in interfaces.iteritems() %}
+---
+{% set interface = { 'key': key, 'value': value } %}
+{% set configuration_prechange = {'matches': {'sections': [ {'section_content': ''}]}} %}
+{% set desired = [] %}
+{% set remove_candidates = [] %}
+{% set remove = [] %}
+{#  ############################################## bandwidth #}
+{% if 'bandwidth' in interface['value'] %}
+{% set _ = desired.append("bandwidth %s" % (interface['value']['bandwidth'])) %}
+{% endif %}{# bandwidth #}
+{#  ############################################## channel group #}
+{% if 'channel_group' in interface['value'] and 'id' in interface['value']['channel_group'] %}
+{% if 'mode' in interface['value']['channel_group'] %}
+{% set _ = desired.append("channel-group %s mode %s" % (interface['value']['channel_group']['id'], interface['value']['channel_group']['mode'])) %}
+{% else %}
+{% set _ = desired.append("channel-group %s" % (interface['value']['channel_group']['id'])) %}
+{% endif %}{# mode #}
+{% endif %}{# channel-group #}
+{#  ############################################## description #}
+{% if 'description' in interface['value'] %}
+{% set _ = desired.append("description %s" % (interface['value']['description'])) %}
+{% endif %}{# description #}
+{#  ############################################## duplex #}
+{% if 'duplex' in interface['value'] %}
+{% set _ = desired.append("duplex %s" % (interface['value']['duplex'])) %}
+{% endif %}{# duplex #}
+{#  ############################################## fex associate #}
+{% if 'fex' in interface['value'] and 'associate' in interface['value']['fex'] %}
+{% set _ = desired.append("fex associate %s" % (interface['value']['fex']['associate'])) %}
+{% endif %}{# fex_associate #}
+{#  ############################################## ip #}
+{% if 'ip' in interface['value'] %}
+{#  ############################################## ip address #}
+{% if 'address' in interface['value']['ip'] %}
+{% if 'ipv4_address' in interface['value']['ip']['address'] and 'ipv4_netmask_bits' in interface['value']['ip']['address'] %}
+{% set _ = desired.append("ip address %s/%s" % (interface['value']['ip']['address']['ipv4_address'], interface['value']['ip']['address']['ipv4_netmask_bits'] )) %}
+{% endif %}{# ipv4_address #}
+{% endif %}{# address #}
+{#  ############################################## ip access-group #}
+{% if 'access_group' in interface['value']['ip'] %}
+{% for entries in interface['value']['ip']['access_group'] %}
+{% set _ = desired.append("ip access-group %s %s" % (entries['name'], entries['directions'])) %}
+{% endfor %}{# entries #}
+{% endif %}{# access_group #}
+{#  ############################################## ip dhcp relay addresses #}
+{% if 'dhcp' in interface['value']['ip'] and 'relay_addresses' in interface['value']['ip']['dhcp'] %}
+{% for relay_address in interface['value']['ip']['dhcp']['relay_addresses'] %}
+{% set _ = desired.append("ip dhcp relay address %s" % relay_address) %}
+{% endfor %}{# relay_address #}
+{% endif %}{# dhcp relay addresses #}
+{#  ############################################## ip flow #}
+{% if 'flow' in interface['value']['ip'] and 'monitor' in interface['value']['ip']['flow'] %}
+{% set _ = desired.append("ip flow monitor %s %s sampler %s" % (interface['value']['ip']['flow']['monitor']['name'], interface['value']['ip']['flow']['monitor']['direction'], interface['value']['ip']['flow']['monitor']['sampler'] )) %}
+{% endif %}{# flow/monitor #}
+{#  ############################################## ip ospf passive interface #}
+{% if 'ospf' in interface['value']['ip'] and 'passive_interface' in interface['value']['ip']['ospf'] %}
+{% if interface['value']['ip']['ospf']['passive_interface'] %}
+{% set _ = desired.append("ip ospf passive-interface") %}
+{% else %}
+{% set _ = desired.append("no ip ospf passive-interface") %}
+{% endif %}{# passive-interface #}
+{% endif %}{# ip ospf passive interface #}
+{#  ############################################## ip ospf message-digest-key  #}
+{% if 'ospf' in interface['value']['ip'] and 'message_digest_key' in interface['value']['ip']['ospf'] %}
+{% if 'key_id' in interface['value']['ip']['ospf']['message_digest_key'] and 'mode' in interface['value']['ip']['ospf']['message_digest_key'] %}
+{% if 'type' in interface['value']['ip']['ospf']['message_digest_key'] and 'password' in interface['value']['ip']['ospf']['message_digest_key'] %}
+{% set _ = desired.append("ip ospf message-digest-key %s %s %s %s" % (interface['value']['ip']['ospf']['message_digest_key']['key_id'], interface['value']['ip']['ospf']['message_digest_key']['mode'], interface['value']['ip']['ospf']['message_digest_key']['type'], interface['value']['ip']['ospf']['message_digest_key']['password'])) %}
+{% endif %}{# type/password #}
+{% endif %}{# key_id/mode #}
+{% endif %}{# ip ospf message-digest-key #}
+{#  ############################################## ip redirects #}
+{% if 'redirects' in interface['value']['ip'] and 'negate' in interface['value']['ip']['redirects'] and interface['value']['ip']['redirects']['negate'] %}
+{% set _ = desired.append("no ip redirects") %}
+{% endif %}{# ip redirects #}
+{#  ############################################## ip router ospf #}
+{% if 'router' in interface['value']['ip'] and 'ospf' in interface['value']['ip']['router'] %}
+{% set _ = desired.append("ip router ospf %s area %s" % (interface['value']['ip']['router']['ospf']['process_id'], interface['value']['ip']['router']['ospf']['area'] )) %}
+{% endif %}{# router/ospf #}
+{% endif %}{# ip #}
+{#  ############################################## lacp rate #}
+{% if 'lacp' in interface['value'] %}
+{% if 'rate' in interface['value']['lacp'] %}
+{% set _ = desired.append("lacp rate %s" % (interface['value']['lacp']['rate'])) %}
+{% endif %}{# lacp rate #}
+{#  ############################################## lacp suspend_individual #}
+{% if 'suspend_individual' in interface['value']['lacp'] and interface['value']['lacp']['suspend_individual'] %}
+{% set _ = desired.append("no lacp suspend-individual") %}
+{% endif %}{# lacp suspend_individual #}
+{% endif %}{# lacp #}
+{#  ############################################## mtu #}
+{% if 'mtu' in interface['value'] %}
+{% set _ = desired.append("mtu %s" % (interface['value']['mtu'])) %}
+{% endif %}{# mtu #}
+{#  ############################################## no cdp enable #}
+{% if 'cdp' in interface['value'] and not interface['value']['cdp']['enabled'] %}
+{% set _ = desired.append("no cdp enable") %}
+{% endif %}{# cdp #}
+{#  ############################################## no negotiate auto #}
+{% if 'negotiate' in interface['value'] and 'negate' in interface['value']['negotiate'] %}
+{% if 'type' in interface['value']['negotiate'] %}
+{% set _ = desired.append("no negotiate %s" % (interface['value']['negotiate']['type'])) %}
+{% endif %}{# no negotiate auto #}
+{% endif %}{# negotiate #}
+{#  ############################################## shutdown #}
+{% if 'shutdown' in interface['value'] %}
+{% if 'negate' in interface['value']['shutdown'] and interface['value']['shutdown']['negate'] %}
+{% set _ = desired.append("no shutdown") %}
+{% else %}
+{% set _ = desired.append("shutdown") %}
+{% endif %}{# negate #}
+{% endif %}{# shutdown #}
+{#  ############################################## spanning tree port type #}
+{% if 'spanning_tree' in interface['value'] %}
+{% if 'port' in interface['value']['spanning_tree'] %}
+{% if 'types' in interface['value']['spanning_tree']['port'] %}
+{% set _ = desired.append("spanning-tree port type %s" % (interface['value']['spanning_tree']['port']['types']|join(' '))) %}
+{% endif %}{# types #}
+{% endif %}{# port #}
+{#  ############################################## spanning tree bpduguard #}
+{% if 'bpduguard' in interface['value']['spanning_tree'] %}
+{% if 'enabled' in interface['value']['spanning_tree']['bpduguard'] and interface['value']['spanning_tree']['bpduguard'] %}
+{% set _ = desired.append("spanning-tree bpduguard enable") %}
+{% endif %}{# bpduguard enabled #}
+{% endif %}{# bpduguard #}
+{#  ############################################## spanning tree bpdufilter #}
+{% if 'bpdufilter' in interface['value']['spanning_tree'] %}
+{% if 'enabled' in interface['value']['spanning_tree']['bpdufilter'] and interface['value']['spanning_tree']['bpdufilter'] %}
+{% set _ = desired.append("spanning-tree bpdufilter enable") %}
+{% endif %}{# bpdufilter enabled #}
+{% endif %}{# bpdufilter #}
+{% endif %}{# spanning_tree #}
+{#  ############################################## speed #}
+{% if 'speed' in interface['value'] %}
+{% set _ = desired.append("speed %s" %(interface['value']['speed'])) %}
+{% endif %}{# speed #}
+{#  ############################################## switchport #}
+{% if 'switchport' in interface['value'] %}
+{#  ############################################## no switchport #}
+{% if 'negate' in interface['value']['switchport'] and interface['value']['switchport']['negate'] %}
+{% set _ = desired.append("no switchport") %}
+{% endif %}{# no switchport #}
+{#  ############################################## switchport #}
+{% if 'switchport' in interface['value']['switchport'] and interface['value']['switchport']['switchport'] %}
+{% set _ = desired.append("switchport") %}
+{% endif %}{# switchport #}
+{#  ############################################## switchport mode #}
+{% if 'mode' in interface['value']['switchport'] %}
+{% set _ = desired.append("switchport mode %s" % (interface['value']['switchport']['mode']|join(' '))) %}
+{% endif %}{# switchport mode #}
+{#  ############################################## switchport mode trunk #}
+{% if 'trunk' in interface['value']['switchport'] %}
+{% if 'native_vlan' in interface['value']['switchport']['trunk'] %}
+{% set _ = desired.append("switchport trunk native vlan %s" % (interface['value']['switchport']['trunk']['native_vlan'])) %}
+{% endif %}{# switchport trunk native_vlan #}
+{#  ############################################## switchport mode trunk allowed vlans #}
+{% if 'allowed_vlans' in interface['value']['switchport']['trunk'] %}
+{#  ############################################## fail if add, no longer supported #}
+{% if 'add' in interface['value']['switchport']['trunk']['allowed_vlans'] %}
+{{ you_cant_use_the_add_statement_anymore }}
+{% endif %}
+{#  ############################################## remediate the trunk list #}
+{# {% set trunk_vlan_changes = configuration_prechange['matches']['sections'][0]['section_content']|trunk_vlan_remediate(interface['value']['switchport']['trunk']['allowed_vlans']['vlans'],20) %}
+{% if 'vlans' in trunk_vlan_changes and trunk_vlan_changes['vlans'] %}
+{% set _ = desired.append("switchport trunk allowed vlan %s" % (trunk_vlan_changes['vlans'])) %}
+{% endif %}{# vlans #}
+{# {% for entry in trunk_vlan_changes['vlans_add'] %}
+{% set _ = desired.append("switchport trunk allowed vlan add %s" % (entry)) %}
+{% endfor %}{# vlans_add #}
+{# {% for entry in trunk_vlan_changes['vlans_remove'] %}
+{% set _ = desired.append("switchport trunk allowed vlan remove %s" % (entry)) %}
+{% endfor %}{# vlans_remove #}
+{% endif %}{# allowed-vlans #}
+{% endif %}{# switchport trunk #}
+{#  ############################################## switchport access vlan #}
+{% if 'access' in interface['value']['switchport'] %}
+{% if 'vlan' in interface['value']['switchport']['access'] %}
+{% set _ = desired.append("switchport access vlan %s" % (interface['value']['switchport']['access']['vlan'])) %}
+{% endif %}{# vlan #}
+{% endif %}{# access #}
+{% endif %}{# switchport #}
+{#  ############################################## vpc #}
+{% if 'vpc' in interface['value'] %}
+{% if 'id' in interface['value']['vpc']%}
+{% set _ = desired.append("vpc %s" % (interface['value']['vpc']['id'])) %}
+{% endif %}{# id #}
+{#  ############################################## vpc orphan-port #}
+{% if 'orphan_port' in interface['value']['vpc'] %}
+{% set _ = desired.append("vpc orphan-port %s" % (interface['value']['vpc']['orphan_port'])) %}
+{% endif %}{# orphan-port #}
+{% endif %}{# vpc #}
+{#  ############################################## vpc peer link #}
+{% if 'vpc_peer_link' in interface['value'] and interface['value']['vpc_peer_link'] %}
+{% set _ = desired.append("vpc peer-link") %}
+{% endif %}{# vpc peer-link#}
+{#  ############################################## vrf #}
+{% if 'vrf' in interface['value'] %}
+{% set _ = desired.append('vrf member %s' % interface['value']['vrf']) %}
+{% endif %}{# vrf #}
+
+{% if configuration_prechange['matches']['sections'] %}
+{% set remove_candidates = configuration_prechange['matches']['sections'][0]['section_content']|difference(desired) %}
+{% set additions = desired|difference(configuration_prechange['matches']['sections'][0]['section_content']) %}
+{% endif %}
+{# Define the parents #}
+parents:
+- interface {{ interface['value']['name'] }}
+{#  ############################################## build desired #}
+{% if desired %}
+lines:
+{% for line in desired %}
+- {{ line }}
+{% endfor %}{# line in desired #}
+{% else %}
+lines: []
+{% endif %}{# desired #}
+{#  ############################################## build remove #}
+{% for line in remove_candidates %}
+{% if not line.startswith('switchport trunk allowed vlan') %}
+{% set _ = remove.append(line) %}
+{% endif %}{# not switchport trunk allowed #}
+{% endfor %}{# remove_candidates #}
+{% if remove %}
+remove:
+{% for line in remove %}
+- no {{ line }}
+{% endfor %}{# fline in remove #}
+{% else %}
+remove: []
+{% endif %}{# remove #}
+{#  ############################################## set flag for push #}
+{% if remove or additions %}
+skip_push: False
+{% else %}
+skip_push: True
+{% endif %}{# remove or additions #}
+{% endfor %}

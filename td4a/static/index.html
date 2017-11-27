@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Template Designer for Automation;</title>
+  <base href="/">
+  <meta charset='utf-8' />
+  <meta name='viewport' content='initial-scale=1, maximum-scale=1, user-scalable=no' />
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" type="text/css" href="css/angular-material.css">
+  <link rel="stylesheet" type="text/css" href="css/codemirror.css"/>
+  <link rel="stylesheet" type="text/css" href="css/dialog.css"/>
+  <link rel="stylesheet" type="text/css" href="css/material.css"/>
+  <link rel="stylesheet" type="text/css" href="css/app.css">
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:400,500,700" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script type="text/javascript" src="js/main.min.js"></script>
+  <script type="text/javascript" src="js/app.js"></script>
+</head>
+<body ng-app="mainController" ng-controller='main'>
+  <split direction="horizontal" ng-transclude>
+    <split-area size="33" ng-transclude>
+      <div class="menubar">
+        <div class="title">DATA</div>
+        <div class="buttons">
+        </div>
+      </div>
+      <div class="editor" id="dataEditor" ng-model="template.data" ui-codemirror="codemirror.dataOptions">
+      </div>
+    </split-area>
+    <split-area size="33" ng-transclude>
+      <div class="column">
+        <div class="menubar">
+          <div class="title">TEMPLATE</div>
+          <div class="buttons">
+            <md-button ng-disabled="renderButton" ng-click="render()" class="md-small md-raised md-primary">
+              <md-icon aria-label="render" class="material-icons">create</md-icon>
+              render
+            </md-button>
+          </div>
+        </div>
+        <div class="editor" id="templateEditor" ng-model="template.jinja" ui-codemirror="codemirror.dataOptions"></div>
+      </div>
+    </split-area>
+    <split-area size="33" ng-transclude>
+      <div class="column">
+        <div class="menubar">
+          <div class="title">RESULT</div>
+          <div class="buttons">
+            <md-button class="md-small md-raised" target="_blank" ng-href="http://github.com/cidrblock">
+              <md-icon aria-label="code" class="material-icons">code</md-icon>
+              github
+            </md-button>
+          </div>
+        </div>
+        <div class="editor" ng-model="template.result" ui-codemirror="codemirror.resultOptions"></div>
+      </div>
+    </split-area>
+  </split>
+</body>
+</html>
