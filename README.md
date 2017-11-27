@@ -29,3 +29,23 @@ The UI is broken into three sections:
 ### Python version
 
 To date, this has only been tested with python 2.7.
+
+### Development
+
+NPM and related packages are required to build the UI.
+
+```
+npm install
+```
+
+The UI components can be installed for development purposes using bower.
+
+```
+bower install
+```
+
+The dependancies can be concatenated and minified using gulp.
+
+```
+gulp
+```
