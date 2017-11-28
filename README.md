@@ -9,6 +9,21 @@ All jinja2 filters are supported along with the filter plguins from Ansible vers
 
 ### Installation:
 
+#### docker
+
+If you do not have custom filter plugins.
+
+```
+docker run -p 5000:5000 cidrblock/td4a
+```
+
+TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
+```
+docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
+```
+
+
+pip:
 ```
 $ virtualenv venv
 $ source venv/bin/activate
