@@ -18,7 +18,7 @@ $ python -m td4a
 
 ### Usage
 
-The interface is browser based and has been testing using Chrome. If your browser did not automatically open when TD4A was started, you can visit http://127.0.0.1:5000 to see the interface.
+The interface is browser based and has been tested using Chrome. If your browser did not automatically open when TD4A was started, you can visit http://127.0.0.1:5000 to see the interface.
 
 The UI is broken into three sections:
 
