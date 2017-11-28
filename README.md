@@ -29,7 +29,9 @@ The UI is broken into three sections:
 ### Keyboard shortcuts
 
 `cmd+r`: Render the template
+
 `cmd+s`: Save the data in browser local storage
+
 `cmd+b`: Begin new, clear the screen
 
 ### Custom filters
