@@ -80,17 +80,27 @@ def render_template(data, template):
             env.filters[entry[0]] = entry[1]
         result = env.from_string(template).render(data)
         return None, result
-    except (TemplateAssertionError, TypeError, jinja2.UndefinedError), error:
+    except Exception, error:
         tback = traceback.extract_tb(sys.exc_traceback)
         template_error = next(x for x in tback if re.search('^<.*>$', x[0]))
-        return {"Error":
-                {
-                    "in": "template",
-                    "title": "Issue found while rendering template.",
-                    "line_number": template_error[1],
-                    "details": str(error)
-                }
-               }, None
+        if template_error:
+            return {"Error":
+                    {
+                        "in": "template",
+                        "title": "Issue found while rendering template.",
+                        "line_number": template_error[1],
+                        "details": str(error)
+                    }
+                   }, None
+        else:
+            return {"Error":
+                    {
+                        "in": "unknown",
+                        "title": "Unexpected error occured.",
+                        "line_number": 'unknown',
+                        "details": "Please see the console for details."
+                    }
+                   }, None
 
 def load_data(str_data):
     """ load yaml from string

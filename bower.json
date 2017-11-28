@@ -24,6 +24,7 @@
     "Split.js": "^1.3.5",
     "angular-ui-codemirror": "^0.3.0",
     "ng-split": "^0.2.0",
-    "angular-material": "^1.1.5"
+    "angular-material": "^1.1.5",
+    "angular-cookies": "^1.6.7"
   }
 }

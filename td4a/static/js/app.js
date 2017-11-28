@@ -1,13 +1,14 @@
-var app = angular.module('mainController', ['ngRoute', 'ngMaterial', 'ngMessages', 'ui.codemirror', 'ng-split']);
+var app = angular.module('mainController', ['ngRoute', 'ngMaterial', 'ngMessages', 'ui.codemirror', 'ng-split', 'ngCookies']);
 
 app.config(function($routeProvider,$locationProvider) {
     $locationProvider.html5Mode(true);
 })
 
-app.controller('main', function($scope, $http, $window, $mdToast, $routeParams, $location) {
+app.controller('main', function($scope, $http, $window, $mdToast, $routeParams, $location, $cookies) {
   $scope.error = {}
   $scope.template = { data: '', jinja: '' }
   $scope.renderButton = false;
+  $scope.showDemo = $cookies.firstVisit || "";
   $scope.codemirror = {
     dataOptions:
      {
@@ -15,13 +16,21 @@ app.controller('main', function($scope, $http, $window, $mdToast, $routeParams, 
         theme:'material',
         lineWrapping : true,
         mode: 'yaml',
+        indentUnit: 2,
+        tabSize: 2,
+        extraKeys: {
+          Tab: function(cm) {
+            var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+            cm.replaceSelection(spaces);
+          }
+        }
       },
     templateOptions:
      {
         lineNumbers: true,
         theme:'material',
         lineWrapping : true,
-        mode: 'jinja2',
+        mode: 'jinja2'
       },
     resultOptions:
      {
@@ -31,25 +40,28 @@ app.controller('main', function($scope, $http, $window, $mdToast, $routeParams, 
         mode: 'yaml',
       }
   }
-
-  $http({
-        method  : 'GET',
-        url     : 'data.yml',
-       })
-    .then(function(response) {
-        if (response.status == 200) {
-            $scope.template.data = response.data
-          }
-        })
-  $http({
-        method  : 'GET',
-        url     : 'template.j2',
-       })
-    .then(function(response) {
-        if (response.status == 200) {
-            $scope.template.jinja = response.data
-          }
-    })
+  $scope.demoShown = $cookies.get('demoShown') || false;
+  if (!($scope.demoShown)) {
+    $cookies.put('demoShown',true);
+    $http({
+          method  : 'GET',
+          url     : 'data.yml',
+         })
+      .then(function(response) {
+          if (response.status == 200) {
+              $scope.template.data = response.data
+            }
+          })
+    $http({
+          method  : 'GET',
+          url     : 'template.j2',
+         })
+      .then(function(response) {
+          if (response.status == 200) {
+              $scope.template.jinja = response.data
+            }
+      })
+    }
 
 $scope.render = function() {
   $scope.renderButton = true;
