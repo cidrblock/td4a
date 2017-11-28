@@ -26,6 +26,12 @@ The UI is broken into three sections:
 2) TEMPLATE, the jinja2 template to be rendered.
 3) RESULT, after clicking the render button, the result pane will be populated with the rendered template.
 
+### Keyboard shortcuts
+
+`cmd+r`: Render the template
+`cmd+s`: Save the data in browser local storage
+`cmd+b`: Begin new, clear the screen
+
 ### Custom filters
 
 TD4A can load custom filters from a directory specified from the command line:

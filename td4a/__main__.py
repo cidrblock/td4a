@@ -132,21 +132,24 @@ def render():
     """ render path
     """
     payload = request.json
-    error, data = load_data(payload['data'])
-    if error:
-        response = jsonify(error)
-        response.status_code = 400
-        return response
-    error, template = check_template(payload['template'])
-    if error:
-        response = jsonify(error)
-        response.status_code = 400
-        return response
-    error, result = render_template(data, template)
-    if error:
-        response = jsonify(error)
-        response.status_code = 400
-        return response
+    if payload['data'] and payload['template']:
+        error, data = load_data(payload['data'])
+        if error:
+            response = jsonify(error)
+            response.status_code = 400
+            return response
+        error, template = check_template(payload['template'])
+        if error:
+            response = jsonify(error)
+            response.status_code = 400
+            return response
+        error, result = render_template(data, template)
+        if error:
+            response = jsonify(error)
+            response.status_code = 400
+            return response
+    else:
+        result = ""
     return jsonify({"result": result})
 
 def main():

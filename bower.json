@@ -25,6 +25,7 @@
     "angular-ui-codemirror": "^0.3.0",
     "ng-split": "^0.2.0",
     "angular-material": "^1.1.5",
-    "angular-cookies": "^1.6.7"
+    "angular-cookies": "^1.6.7",
+    "angular-local-storage": "^0.7.1"
   }
 }

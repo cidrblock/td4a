@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "gulpfile.js",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
-    "gulp-clean": "^0.3.2",
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-clean": "^0.3.2",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.0.4",
     "gulp-notify": "^3.0.0",

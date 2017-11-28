@@ -12,7 +12,7 @@ var cssDest = 'td4a/static/css';
 gulp.task('default', function() {
 });
 
-gulp.task('codemirror', [], function() {
+gulp.task('codemirror', function(done) {
   gulp.src("bower_components/codemirror/lib/codemirror.js")
       .pipe(gulp.dest(jsDest));
   gulp.src("bower_components/codemirror/mode/jinja2/jinja2.js")
@@ -37,9 +37,10 @@ gulp.task('codemirror', [], function() {
       .pipe(gulp.dest(cssDest));
   gulp.src("bower_components/codemirror/theme/material.css")
       .pipe(gulp.dest(cssDest));
+  done();
 });
 
-gulp.task('angular', [], function() {
+gulp.task('angular', function(done) {
   gulp.src("bower_components/angular/angular.js")
       .pipe(gulp.dest(jsDest));
   gulp.src("bower_components/angular-animate/angular-animate.js")
@@ -50,32 +51,41 @@ gulp.task('angular', [], function() {
       .pipe(gulp.dest(jsDest));
   gulp.src("bower_components/angular-route/angular-route.js")
       .pipe(gulp.dest(jsDest));
+  gulp.src("bower_components/angular-cookies/angular-cookies.js")
+      .pipe(gulp.dest(jsDest));
+  gulp.src("bower_components/angular-local-storage/dist/angular-local-storage.js")
+      .pipe(gulp.dest(jsDest));
+  done();
 });
 
-gulp.task('angular-material', [], function() {
+gulp.task('angular-material', function(done) {
   gulp.src("bower_components/angular-material/angular-material.js")
       .pipe(gulp.dest(jsDest));
   gulp.src("bower_components/angular-material/angular-material.css")
       .pipe(gulp.dest(cssDest));
+  done();
 });
 
-gulp.task('split', [], function() {
+gulp.task('split', function(done) {
   gulp.src("bower_components/Split.js/split.js")
       .pipe(gulp.dest(jsDest));
+  done();
 });
 
-gulp.task('ui-codemirror', [], function() {
+gulp.task('ui-codemirror', function(done) {
   gulp.src("bower_components/angular-ui-codemirror/ui-codemirror.js")
       .pipe(gulp.dest(jsDest));
+  done();
 });
 
-gulp.task('ng-split', [], function() {
+gulp.task('ng-split', function(done) {
   gulp.src("bower_components/ng-split/dist/ng-split.js")
       .pipe(gulp.dest(jsDest));
+  done();
 });
 
-gulp.task('scripts', ['clean'], function() {
-  return gulp.src([
+gulp.task('scripts', function(done) {
+  gulp.src([
                     'td4a/static/jsTemp/angular.js',
                     'td4a/static/jsTemp/codemirror.js',
                     'td4a/static/jsTemp/*.js'
@@ -86,13 +96,15 @@ gulp.task('scripts', ['clean'], function() {
     .pipe(uglify())
     .pipe(gulp.dest('td4a/static/js'))
     .pipe(notify({ message: 'Scripts task complete' }));
+  done();
 });
 
-gulp.task('clean', function () {
-    return gulp.src(['td4a/static/jsTemp',
+gulp.task('clean', function (done) {
+  gulp.src(['td4a/static/jsTemp',
                      'dist'
                     ], {read: false})
         .pipe(clean({force: true}));
+  done();
 });
 
-gulp.task('default', ['codemirror', 'angular', 'angular-material', 'split', 'ng-split', 'ui-codemirror', 'scripts']);
+gulp.task('default', gulp.series('codemirror', 'angular', 'angular-material', 'split', 'ng-split', 'ui-codemirror', 'scripts'))
