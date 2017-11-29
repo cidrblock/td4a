@@ -88,11 +88,14 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
               $scope.template.jinja = response.data
             }
       })
+  } else if ('data' in $location.search() && 'template' in $location.search()) {
+    $scope.template = { data: $location.search().data, jinja: $location.search().template }
   } else {
     $scope.template = localStorageService.get('data')
   };
 
   $scope.render = function() {
+    $scope.params = `data=${encodeURIComponent($scope.template.data)}&template=${encodeURIComponent($scope.template.jinja)}`
     $scope.renderButton = true;
     if ('line_number' in $scope.error) {
       $scope.error.codeMirrorEditor.removeLineClass($scope.error.line_number, 'wrap', 'error');
