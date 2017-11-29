@@ -25,15 +25,21 @@ TD4A will look for custom plugins at /filter_plugins within the container. Pass 
 ```
 docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
 ```
+The docker file can be found here:
 
+https://hub.docker.com/r/cidrblock/td4a/
 
-pip:
+#### pip:
 ```
 $ virtualenv venv
 $ source venv/bin/activate
 $ pip install td4a
 $ python -m td4a
 ```
+
+The pip package can be found here:
+
+https://pypi.python.org/pypi/td4a
 
 ### Usage
 
@@ -58,7 +64,35 @@ The UI is broken into three sections:
 TD4A can load custom filters from a directory specified from the command line:
 
 ```
-python -m td4a -cff ./filter_plugins
+python -m td4a -f ./filter_plugins
+```
+
+### Saving docs and building links
+
+TD4A has the ability to store data and templates in a CouchDB.  This is disabled by defualt.
+
+The CouchDB needs to previously created.
+
+To enable link support, and add the link button to the UI, set the following environ variables:
+
+#### docker:
+
+```
+docker run  -p 5000:5000 \
+            -v `pwd`/my_filter_plugins:/filter_plugins \
+            -e "COUCH_USERNAME=admin" \
+            -e "COUCH_PASSWORD=password" \
+            -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
+            -e "ENABLE_LINK=true" \
+            td4a
+```
+
+#### pip:
+```
+export COUCH_USERNAME=admin
+export COUCH_PASSWORD=password
+export COUCH_URL=http://localhost:5984/td4a
+export ENABLE_LINK=True
 ```
 
 ### Python version

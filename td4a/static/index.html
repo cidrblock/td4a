@@ -20,12 +20,13 @@
 <body ng-app="mainController" ng-controller='main'>
   <split direction="horizontal" ng-transclude>
     <split-area size="33" ng-transclude>
-      <div class="menubar">
-        <div class="title">DATA</div>
-        <div class="buttons">
+      <div class="column">
+        <div class="menubar">
+          <div class="title">DATA</div>
+          <div class="buttons">
+          </div>
         </div>
-      </div>
-      <div class="editor" id="dataEditor" ng-model="template.data" ui-codemirror="codemirror.dataOptions">
+        <div class="editor" id="dataEditor" ng-model="template.data" ui-codemirror="codemirror.dataOptions"></div>
       </div>
     </split-area>
     <split-area size="33" ng-transclude>
@@ -46,8 +47,8 @@
       <div class="column">
         <div class="menubar">
           <div class="title">RESULT</div>
-          <div class="buttons">
-            <md-button class="md-small md-raised" target="_self" ng-href="/?{{ params }}">
+          <div class="buttons" ng-cloak>
+            <md-button class="md-small md-raised" ng-disabled="!enableLink" ng-click="link()">
               <md-icon aria-label="code" class="material-icons">link</md-icon>
               link
             </md-button>

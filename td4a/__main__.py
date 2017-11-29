@@ -11,9 +11,9 @@ import threading
 import traceback
 import webbrowser
 import ansible.plugins.filter as apf
-from flask import Flask, request, jsonify, current_app
-import jinja2
-from jinja2 import Environment, TemplateSyntaxError, TemplateAssertionError
+from flask import Flask, request, jsonify
+import requests
+from jinja2 import Environment, TemplateSyntaxError
 import yaml
 
 APP = Flask(__name__, static_url_path='')
@@ -92,15 +92,14 @@ def render_template(data, template):
                         "details": str(error)
                     }
                    }, None
-        else:
-            return {"Error":
-                    {
-                        "in": "unknown",
-                        "title": "Unexpected error occured.",
-                        "line_number": 'unknown',
-                        "details": "Please see the console for details."
-                    }
-                   }, None
+        return {"Error":
+                {
+                    "in": "unknown",
+                    "title": "Unexpected error occured.",
+                    "line_number": 'unknown',
+                    "details": "Please see the console for details."
+                }
+               }, None
 
 def load_data(str_data):
     """ load yaml from string
@@ -152,24 +151,89 @@ def render():
         result = ""
     return jsonify({"result": result})
 
-def main():
-    """ main
+@APP.route('/link', methods=['POST'])
+def link():
+    """ Save the documents in a couchdb and returns an id
+    """
+    payload = request.json
+    if APP.args.username and APP.args.password and APP.args.url:
+        username = APP.args.username
+        password = APP.args.password
+        url = APP.args.url
+        response = requests.post("%s" % url, json=payload, auth=(username, password))
+        return jsonify({"id": response.json()['id']})
+    return jsonify({"error": "true"})
+
+
+@APP.route('/retrieve', methods=['GET'])
+def retrieve():
+    """ return a doc from the couchdb
+    """
+    docid = request.args.get('id')
+    if APP.args.username and APP.args.password and APP.args.url:
+        username = APP.args.username
+        password = APP.args.password
+        url = APP.args.url
+        response = requests.get("%s/%s?include_docs=true" % (url, docid), auth=(username, password))
+        if response.status_code != 200:
+            return jsonify({"error": "true"})
+        doc = response.json()
+        return jsonify({"data": doc['data'], "jinja": doc['template']})
+    return jsonify({"error": "true"})
+
+@APP.route('/enablelink', methods=['GET'])
+def enablelink():
+    """ check to see if the link button should be enabled
+    """
+    return jsonify({"enabled": APP.args.enable_links})
+
+def parse_args():
+    """ parse the cli args and add environ
     """
     parser = ArgumentParser(description='',
                             formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-cff', action="store", dest="custom_filters",
+    parser.add_argument('-f', action="store", dest="custom_filters",
                         required=False,
-                        help="a folder containing custom filters")
+                        help="A folder containing custom filters.")
     args = parser.parse_args()
+    args.username = os.environ.get('COUCH_USERNAME', False)
+    args.password = os.environ.get('COUCH_PASSWORD', False)
+    args.enable_links = os.environ.get('ENABLE_LINK', False)
+    args.url = os.environ.get('COUCH_URL', False)
+    return args
+
+def load_filters(args):
+    """ load the filters
+    """
     ansible_filters = pack_ansible_filters()
     if args.custom_filters:
         custom_filters = pack_custom_filters(args.custom_filters)
-        APP.filters = ansible_filters + custom_filters
+        filters = ansible_filters + custom_filters
     else:
-        APP.filters = ansible_filters
+        filters = ansible_filters
+    return filters
+
+def main():
+    """ main
+    """
+    APP.args = parse_args()
+    APP.filters = load_filters(APP.args)
+    reactor_args = {}
+    def run_twisted_wsgi():
+        from twisted.internet import reactor
+        from twisted.web.server import Site
+        from twisted.web.wsgi import WSGIResource
+        resource = WSGIResource(reactor, reactor.getThreadPool(), APP)
+        site = Site(resource)
+        reactor.listenTCP(5000, site)
+        reactor.run(**reactor_args)
+    if APP.debug:
+        reactor_args['installSignalHandlers'] = 0
+        import werkzeug.serving
+        run_twisted_wsgi = werkzeug.serving.run_with_reloader(run_twisted_wsgi)
     url = "http://127.0.0.1:5000"
     threading.Timer(1.25, lambda: webbrowser.open(url)).start()
-    APP.run(debug=False, host='0.0.0.0')
+    run_twisted_wsgi()
 
 if __name__ == '__main__':
     main()
