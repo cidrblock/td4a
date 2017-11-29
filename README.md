@@ -1,6 +1,12 @@
 ![screenshot](screenshot.png)
 ## Template Designer for Automation
 
+### Try it now
+
+https://now-rcjlkuzayt.now.sh/
+
+(this URL subject to change)
+
 ### Overview
 
 TD4A is a visual design aid for building and testing jinja2 templates.  It will combine data in yaml format with a jinja2 template and render the output.
