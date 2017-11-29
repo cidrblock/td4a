@@ -88,14 +88,68 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
               $scope.template.jinja = response.data
             }
       })
-  } else if ('data' in $location.search() && 'template' in $location.search()) {
-    $scope.template = { data: $location.search().data, jinja: $location.search().template }
+  } else if ('id' in $location.search()) {
+    $http({
+          method  : 'GET',
+          url     : `/retrieve?id=${$location.search().id}`,
+         })
+      .then(function(response) {
+          if (response.status == 200) {
+            if ('data' in response.data && 'jinja' in response.data) {
+              $scope.template = response.data
+            } else {
+              var toast = $mdToast.simple()
+                .textContent("Document ID not found")
+                .action('close')
+                .highlightAction(true)
+                .highlightClass('md-warn')
+                .position('top right')
+                .hideDelay('3000');
+              $mdToast.show(toast)
+            }
+          }
+        })
   } else {
     $scope.template = localStorageService.get('data')
   };
 
+
+  $http({
+        method  : 'GET',
+        url     : 'enablelink',
+       })
+    .then(function(response) {
+        if (response.status == 200) {
+            $scope.enableLink = response.data.enabled
+          }
+    })
+
+  $scope.link = function() {
+    $http({
+          method  : 'POST',
+          url     : '/link',
+          data    : { "data": $scope.template.data, "template": $scope.template.jinja },
+          headers : { 'Content-Type': 'application/json' }
+         })
+      .then(function(response) {
+          if (response.status == 200) {
+            if ('id' in response.data) {
+              $location.search(`id=${response.data.id}`)
+            } else {
+              var toast = $mdToast.simple()
+                .textContent("Error building link for document.")
+                .action('close')
+                .highlightAction(true)
+                .highlightClass('md-warn')
+                .position('top right')
+                .hideDelay('3000');
+              $mdToast.show(toast)
+            }
+          }      
+        })
+  }; //link
+
   $scope.render = function() {
-    $scope.params = `data=${encodeURIComponent($scope.template.data)}&template=${encodeURIComponent($scope.template.jinja)}`
     $scope.renderButton = true;
     if ('line_number' in $scope.error) {
       $scope.error.codeMirrorEditor.removeLineClass($scope.error.line_number, 'wrap', 'error');
