@@ -46,7 +46,7 @@ def pack_custom_filters(custom_filter_path):
 def check_template(str_template):
     """ check a template for syntax errors
     """
-    env = Environment(undefined=StrictUndefined)
+    env = Environment()
     try:
         env.parse(str_template)
         return None, str_template
@@ -74,7 +74,7 @@ def render_template(data, template):
         str: an error
     """
     try:
-        env = Environment()
+        env = Environment(undefined=StrictUndefined)
         env.trim_blocks = True
         for entry in APP.filters:
             env.filters[entry[0]] = entry[1]
