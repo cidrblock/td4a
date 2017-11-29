@@ -3,9 +3,7 @@
 
 ### Try it now
 
-https://now-rcjlkuzayt.now.sh/
-
-(this URL subject to change)
+https://go.templatethe.net
 
 ### Overview
 
