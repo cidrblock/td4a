@@ -3,7 +3,7 @@
 
 ### Try it now
 
-https://now-rcjlkuzayt.now.sh/ (subject to change)
+https://td4a.now.sh
 
 ### Overview
 
