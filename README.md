@@ -3,7 +3,7 @@
 
 ### Try it now
 
-https://go.templatethe.net
+https://now-rcjlkuzayt.now.sh/ (subject to change)
 
 ### Overview
 
