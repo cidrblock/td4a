@@ -13,7 +13,7 @@ import webbrowser
 import ansible.plugins.filter as apf
 from flask import Flask, request, jsonify
 import requests
-from jinja2 import Environment, TemplateSyntaxError
+from jinja2 import Environment, TemplateSyntaxError, StrictUndefined
 import yaml
 
 APP = Flask(__name__, static_url_path='')
@@ -46,7 +46,7 @@ def pack_custom_filters(custom_filter_path):
 def check_template(str_template):
     """ check a template for syntax errors
     """
-    env = Environment()
+    env = Environment(undefined=StrictUndefined)
     try:
         env.parse(str_template)
         return None, str_template
