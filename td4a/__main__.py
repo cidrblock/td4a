@@ -13,10 +13,31 @@ import webbrowser
 import ansible.plugins.filter as apf
 from flask import Flask, request, jsonify
 import requests
-from jinja2 import Environment, TemplateSyntaxError, StrictUndefined
-import yaml
+from jinja2 import meta, Environment, TemplateSyntaxError, StrictUndefined
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import StringIO
+from ruamel.yaml.constructor import DuplicateKeyError
+from ruamel.yaml.scanner import ScannerError
+from ruamel.yaml.parser import ParserError
+from twisted.internet import reactor
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
 
 APP = Flask(__name__, static_url_path='')
+
+class MYYAML(YAML):
+    """ Build a string dumper for ruamel
+    """
+    def dump(self, data, stream=None, **kw):
+        """ dump as string
+        """
+        inefficient = False
+        if stream is None:
+            inefficient = True
+            stream = StringIO()
+        YAML.dump(self, data, stream, **kw)
+        if inefficient:
+            return stream.getvalue()
 
 def pack_ansible_filters():
     """ Load the ansible filters from the filter directory
@@ -43,26 +64,36 @@ def pack_custom_filters(custom_filter_path):
                 filter_list.append((key, value))
     return filter_list
 
-def check_template(str_template):
+def check_template(str_template, typ):
     """ check a template for syntax errors
     """
     env = Environment()
     try:
         env.parse(str_template)
-        return None, str_template
+        return None
     except TemplateSyntaxError, error:
         tback = traceback.extract_tb(sys.exc_traceback)
         template_error = next(x for x in tback if re.match('^<.*>$', x[0]))
         return {"Error":
                 {
-                    "in": "template",
-                    "title": "Syntax error found in template.",
+                    "in": typ,
+                    "title": "Syntax error found in %s." % typ,
                     "line_number": template_error[1],
                     "details": str(error)
                 }
-               }, None
+               }
 
-def render_template(data, template):
+def check_for_unresolved(template):
+    """ Check a jinja template for any unresolved vars
+    """
+    env = Environment(undefined=StrictUndefined)
+    env.trim_blocks = True
+    for entry in APP.filters:
+        env.filters[entry[0]] = entry[1]
+    unresolved = meta.find_undeclared_variables(env.parse(template))
+    return unresolved
+
+def render_template(data, template, typ):
     """ Render a jinja template
 
     Args:
@@ -86,8 +117,8 @@ def render_template(data, template):
         if template_error:
             return {"Error":
                     {
-                        "in": "template",
-                        "title": "Issue found while rendering template.",
+                        "in": typ,
+                        "title": "Issue found while rendering %s as jinja." % typ,
                         "line_number": template_error[1],
                         "details": str(error)
                     }
@@ -104,19 +135,62 @@ def render_template(data, template):
 def load_data(str_data):
     """ load yaml from string
     """
-
     try:
+        yaml = MYYAML()
         data = yaml.load(str_data)
         return None, data
-    except yaml.YAMLError, error:
-        if hasattr(error, 'problem_mark'):
-            mark = error.problem_mark
+    except ParserError, error:
+        mark = error.problem_mark
+        message = next(x for x in str(error).splitlines() if x.startswith('expected'))
         return {"Error":
                 {
                     "in": "data",
-                    "title": "Issue found loading data.",
+                    "title": "Issue found loading data. %s" % repr(error),
                     "line_number": mark.line+1,
-                    "details": "Error while parsing data"
+                    "details": "%s" % message
+                }
+               }, None
+    except DuplicateKeyError, error:
+        mark = error.problem_mark
+        message = next(x for x in str(error).splitlines() if x.startswith('found')).split('with')[0]
+        return {"Error":
+                {
+                    "in": "data",
+                    "title": "Issue found loading data. %s" % repr(error),
+                    "line_number": mark.line+1,
+                    "details": "%s" % message
+                }
+               }, None
+    except ScannerError, error:
+        mark = error.problem_mark
+        message = next(x for x in str(error).splitlines() if x.startswith('could'))
+        return {"Error":
+                {
+                    "in": "data",
+                    "title": "Issue found loading data. %s" % repr(error),
+                    "line_number": mark.line,
+                    "details": "%s" % message
+                }
+               }, None
+    except Exception, error:
+        print error
+        if hasattr(error, 'problem_mark'):
+            mark = error.problem_mark
+            return {"Error":
+                    {
+                        "in": "data",
+                        "title": "Issue found loading data. %s" % repr(error),
+                        "line_number": mark.line,
+                        "details": "Error while parsing data"
+                    }
+                   }, None
+        return {"Error":
+                {
+                    "in": "data",
+                    "title": "Unexpected error occured.",
+                    "line_number": 'unknown',
+                    "details": "Please see the console for details.",
+                    "console": str(error)
                 }
                }, None
 
@@ -130,25 +204,45 @@ def root():
 def render():
     """ render path
     """
+    yaml = MYYAML()
     payload = request.json
-    if payload['data'] and payload['template']:
-        error, data = load_data(payload['data'])
-        if error:
-            response = jsonify(error)
-            response.status_code = 400
-            return response
-        error, template = check_template(payload['template'])
-        if error:
-            response = jsonify(error)
-            response.status_code = 400
-            return response
-        error, result = render_template(data, template)
-        if error:
-            response = jsonify(error)
-            response.status_code = 400
-            return response
-    else:
-        result = ""
+    while True:
+        if payload['data'] and payload['template']:
+            # parse data as yaml
+            error, data = load_data(payload['data'])
+            if error:
+                break
+            for _ in range(10):
+                if check_for_unresolved(yaml.dump(data)):
+                    # check the data as jinja for errors
+                    error = check_template(yaml.dump(data), "data")
+                    if error:
+                        break
+                    # render the data as jinja with the data
+                    error, data_post_jijna = render_template(data, yaml.dump(data), "data")
+                    if error:
+                        break
+                    # parse the data as yaml
+                    error, data = load_data(data_post_jijna)
+                    if error:
+                        break
+                else:
+                    break
+            if error:
+                break
+            # check the template as jinja for errors
+            error = check_template(payload['template'], "template")
+            if error:
+                break
+            # finally render the result
+            error, result = render_template(data, payload['template'], "template")
+            if error:
+                break
+            break
+        else:
+            result = ""
+    if error:
+        return jsonify(error), 400
     return jsonify({"result": result})
 
 @APP.route('/link', methods=['POST'])
@@ -220,9 +314,8 @@ def main():
     APP.filters = load_filters(APP.args)
     reactor_args = {}
     def run_twisted_wsgi():
-        from twisted.internet import reactor
-        from twisted.web.server import Site
-        from twisted.web.wsgi import WSGIResource
+        """ run twisted
+        """
         resource = WSGIResource(reactor, reactor.getThreadPool(), APP)
         site = Site(resource)
         reactor.listenTCP(5000, site)
