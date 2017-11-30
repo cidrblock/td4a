@@ -59,12 +59,12 @@
 {% if 'router' in value['ip'] and 'ospf' in value['ip']['router'] %}
   - ip router ospf {{ value['ip']['router']['ospf']['process_id'] }} area {{ value['ip']['router']['ospf']['area'] }}
 {% endif %}{# router/ospf #}
-{% endif %}{# ip #}
 {% if 'dhcp' in value['ip'] and 'relay_addresses' in value['ip']['dhcp'] %}
 {% for relay_address in value['ip']['dhcp']['relay_addresses'] %}
   - ip dhcp relay address {{ relay_address }}
 {% endfor %}{# relay_address #}
 {% endif %}{# dhcp relay addresses #}
+{% endif %}{# ip #}
 {% if 'spanning_tree' in value %}
 {% if 'port' in value['spanning_tree'] %}
 {% if 'types' in value['spanning_tree']['port'] %}
