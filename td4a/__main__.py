@@ -16,7 +16,7 @@ import requests
 from jinja2 import meta, Environment, TemplateSyntaxError, StrictUndefined
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
-from ruamel.yaml.constructor import DuplicateKeyError
+from ruamel.yaml.constructor import DuplicateKeyError, ConstructorError
 from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.parser import ParserError
 from twisted.internet import reactor
@@ -139,6 +139,17 @@ def load_data(str_data):
         yaml = MYYAML()
         data = yaml.load(str_data)
         return None, data
+    except ConstructorError, error:
+        mark = error.problem_mark
+        message = next(x for x in str(error).splitlines() if x.startswith('found'))
+        return {"Error":
+                {
+                    "in": "data",
+                    "title": "Issue found loading data. Quotes needed?. %s" % repr(error),
+                    "line_number": mark.line+1,
+                    "details": "%s" % message
+                }
+               }, None
     except ParserError, error:
         mark = error.problem_mark
         message = next(x for x in str(error).splitlines() if x.startswith('expected'))

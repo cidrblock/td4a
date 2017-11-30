@@ -8,7 +8,7 @@ RUN apk add gcc libffi-dev musl-dev openssl-dev sshpass make
 # RUN apk add py-crypto python-dev
 
 # Install td4a
-RUN pip install td4a==1.3
+RUN pip install td4a==1.5
 
 # Clear out extras
 RUN rm -rf /var/cache/apk/*

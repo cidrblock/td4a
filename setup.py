@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='td4a',
-      version='1.3',
+      version='1.5',
       description='A browser based jinja template renderer',
       url='http://github.com/cidrblock/td4a',
       author='Bradley A. Thornton',
