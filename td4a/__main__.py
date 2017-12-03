@@ -5,87 +5,48 @@ jinja template renderer
 from argparse import ArgumentParser, RawTextHelpFormatter
 import importlib
 import os
-import re
 import sys
 import threading
-import traceback
 import webbrowser
 import ansible.plugins.filter as apf
 from flask import Flask, request, jsonify
 import requests
-from jinja2 import meta, Environment, TemplateSyntaxError, StrictUndefined
-from ruamel.yaml import YAML
-from ruamel.yaml.compat import StringIO
-from ruamel.yaml.constructor import DuplicateKeyError, ConstructorError
-from ruamel.yaml.scanner import ScannerError
-from ruamel.yaml.parser import ParserError
+from jinja2 import meta, Environment, StrictUndefined
+
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
+from modules.td4ayaml import Td4aYaml
+from modules.exception_handler import ExceptionHandler, HandledException
 
 APP = Flask(__name__, static_url_path='')
 
-class MYYAML(YAML):
-    """ Build a string dumper for ruamel
-    """
-    def dump(self, data, stream=None, **kw):
-        """ dump as string
-        """
-        inefficient = False
-        if stream is None:
-            inefficient = True
-            stream = StringIO()
-        YAML.dump(self, data, stream, **kw)
-        if inefficient:
-            return stream.getvalue()
-
-def pack_ansible_filters():
-    """ Load the ansible filters from the filter directory
+def filter_load_dir(directory):
+    """ Load jinja filters in ansible format
     """
     filter_list = []
-    ansible_filter_path = os.path.dirname(apf.__file__)
-    sys.path.append(ansible_filter_path)
-    for entry in os.listdir(ansible_filter_path):
+    sys.path.append(directory)
+    for entry in os.listdir(directory):
         if entry != '__init__.py' and entry.split('.')[-1] == 'py':
             filters = importlib.import_module(entry[:-3]).FilterModule().filters()
             for key, value in filters.iteritems():
                 filter_list.append((key, value))
     return filter_list
 
-def pack_custom_filters(custom_filter_path):
-    """ Load the custom filters
+def filters_load(args):
+    """ load the filters
     """
-    filter_list = []
-    sys.path.append(custom_filter_path)
-    for entry in os.listdir(custom_filter_path):
-        if entry != '__init__.py' and entry.split('.')[-1] == 'py':
-            filters = importlib.import_module(entry[:-3]).FilterModule().filters()
-            for key, value in filters.iteritems():
-                filter_list.append((key, value))
-    return filter_list
+    filters = []
+    filters.extend(filter_load_dir(os.path.dirname(apf.__file__)))
+    if args.custom_filters:
+        filters.extend(filter_load_dir(args.custom_filters))
+    return filters
 
-def check_template(str_template, typ):
-    """ check a template for syntax errors
-    """
-    env = Environment()
-    try:
-        env.parse(str_template)
-        return None
-    except TemplateSyntaxError, error:
-        tback = traceback.extract_tb(sys.exc_traceback)
-        template_error = next(x for x in tback if re.match('^<.*>$', x[0]))
-        return {"Error":
-                {
-                    "in": typ,
-                    "title": "Syntax error found in %s." % typ,
-                    "line_number": template_error[1],
-                    "details": str(error)
-                }
-               }
-
-def check_for_unresolved(template):
+@ExceptionHandler
+def jinja_unresolved(template, typ):
     """ Check a jinja template for any unresolved vars
     """
+    _ = typ
     env = Environment(undefined=StrictUndefined)
     env.trim_blocks = True
     for entry in APP.filters:
@@ -93,198 +54,119 @@ def check_for_unresolved(template):
     unresolved = meta.find_undeclared_variables(env.parse(template))
     return unresolved
 
-def render_template(data, template, typ):
+@ExceptionHandler
+def jinja_render(data, template, typ):
     """ Render a jinja template
-
-    Args:
-        tpl_path (str): A path to the template
-        context (dict): A dict to pass to the teplate
-        filters (list): A list of filters
-
-    Return:
-        str: an error
     """
-    try:
-        env = Environment(undefined=StrictUndefined)
-        env.trim_blocks = True
-        for entry in APP.filters:
-            env.filters[entry[0]] = entry[1]
-        result = env.from_string(template).render(data)
-        return None, result
-    except Exception, error:
-        tback = traceback.extract_tb(sys.exc_traceback)
-        template_error = next(x for x in tback if re.search('^<.*>$', x[0]))
-        if template_error:
-            return {"Error":
-                    {
-                        "in": typ,
-                        "title": "Issue found while rendering %s as jinja." % typ,
-                        "line_number": template_error[1],
-                        "details": str(error)
-                    }
-                   }, None
-        return {"Error":
-                {
-                    "in": "unknown",
-                    "title": "Unexpected error occured.",
-                    "line_number": 'unknown',
-                    "details": "Please see the console for details."
-                }
-               }, None
+    _ = typ
+    env = Environment(undefined=StrictUndefined)
+    env.trim_blocks = True
+    for entry in APP.filters:
+        env.filters[entry[0]] = entry[1]
+    result = env.from_string(template).render(data)
+    return result
 
-def load_data(str_data):
+@ExceptionHandler
+def yaml_parse(string, typ):
     """ load yaml from string
     """
+    _ = typ
+    yaml = Td4aYaml()
+    data = yaml.load(string)
+    return data
+
+
+@ExceptionHandler
+def link(payload, typ):
+    """ store a doc in the db
+    """
+    _ = typ
+    auth = (APP.args.username, APP.args.password)
+    url = APP.args.url
+    response = requests.post("%s" % url, json=payload, auth=auth)
+    return {"id": response.json()['id']}
+
+@ExceptionHandler
+def render(payload, typ):
+    """ Given the payload, render the result
+    """
+    _ = typ
     try:
-        yaml = MYYAML()
-        data = yaml.load(str_data)
-        return None, data
-    except ConstructorError, error:
-        mark = error.problem_mark
-        message = next(x for x in str(error).splitlines() if x.startswith('found'))
-        return {"Error":
-                {
-                    "in": "data",
-                    "title": "Issue found loading data. Quotes needed?. %s" % repr(error),
-                    "line_number": mark.line+1,
-                    "details": "%s" % message
-                }
-               }, None
-    except ParserError, error:
-        mark = error.problem_mark
-        message = next(x for x in str(error).splitlines() if x.startswith('expected'))
-        return {"Error":
-                {
-                    "in": "data",
-                    "title": "Issue found loading data. %s" % repr(error),
-                    "line_number": mark.line+1,
-                    "details": "%s" % message
-                }
-               }, None
-    except DuplicateKeyError, error:
-        mark = error.problem_mark
-        message = next(x for x in str(error).splitlines() if x.startswith('found')).split('with')[0]
-        return {"Error":
-                {
-                    "in": "data",
-                    "title": "Issue found loading data. %s" % repr(error),
-                    "line_number": mark.line+1,
-                    "details": "%s" % message
-                }
-               }, None
-    except ScannerError, error:
-        mark = error.problem_mark
-        message = next(x for x in str(error).splitlines() if x.startswith('could'))
-        return {"Error":
-                {
-                    "in": "data",
-                    "title": "Issue found loading data. %s" % repr(error),
-                    "line_number": mark.line,
-                    "details": "%s" % message
-                }
-               }, None
-    except Exception, error:
-        print error
-        if hasattr(error, 'problem_mark'):
-            mark = error.problem_mark
-            return {"Error":
-                    {
-                        "in": "data",
-                        "title": "Issue found loading data. %s" % repr(error),
-                        "line_number": mark.line,
-                        "details": "Error while parsing data"
-                    }
-                   }, None
-        return {"Error":
-                {
-                    "in": "data",
-                    "title": "Unexpected error occured.",
-                    "line_number": 'unknown',
-                    "details": "Please see the console for details.",
-                    "console": str(error)
-                }
-               }, None
+        yaml = Td4aYaml()
+        result = None
+        if payload['data'] and payload['template']:
+            data = yaml_parse(string=payload['data'], typ="data")
+            for _ in range(10):
+                if jinja_unresolved(template=yaml.dump(data), typ="data"):
+                    data_post_jijna = jinja_render(data=data,
+                                                   template=yaml.dump(data),
+                                                   typ="data")
+                    data = yaml_parse(string=data_post_jijna, typ="data")
+            result = jinja_render(data=data, template=payload['template'], typ="template")
+        return {"result": result}
+    except HandledException as error:
+        return error.json()
+
+@ExceptionHandler
+def retrieve(doc_id, typ):
+    """ get a doc from the db
+    """
+    _ = typ
+    auth = (APP.args.username, APP.args.password)
+    url = APP.args.url
+    cdoc = requests.get("%s/%s?include_docs=true" % (url, doc_id), auth=auth)
+    doc = cdoc.json()
+    if cdoc.status_code == 200:
+        response = {"data": doc['data'], "jinja": doc['template']}
+    else:
+        response = {"handled_error": {
+            "in": "document retrieval",
+            "title": "Message: Issue loading saved document.",
+            "line_number": None,
+            "details": "Details: %s" % doc['error'],
+            "raw_error": "%s" % cdoc.text
+            }
+                   }
+    return response
 
 @APP.route('/')
 def root():
     """ root path
     """
-    return APP.send_static_file('index.html')
-
-@APP.route('/render', methods=['POST'])
-def render():
-    """ render path
-    """
-    yaml = MYYAML()
-    payload = request.json
-    while True:
-        if payload['data'] and payload['template']:
-            # parse data as yaml
-            error, data = load_data(payload['data'])
-            if error:
-                break
-            for _ in range(10):
-                if check_for_unresolved(yaml.dump(data)):
-                    # check the data as jinja for errors
-                    error = check_template(yaml.dump(data), "data")
-                    if error:
-                        break
-                    # render the data as jinja with the data
-                    error, data_post_jijna = render_template(data, yaml.dump(data), "data")
-                    if error:
-                        break
-                    # parse the data as yaml
-                    error, data = load_data(data_post_jijna)
-                    if error:
-                        break
-                else:
-                    break
-            if error:
-                break
-            # check the template as jinja for errors
-            error = check_template(payload['template'], "template")
-            if error:
-                break
-            # finally render the result
-            error, result = render_template(data, payload['template'], "template")
-            if error:
-                break
-            break
-        else:
-            result = ""
-    if error:
-        return jsonify(error), 400
-    return jsonify({"result": result})
+    try:
+        return APP.send_static_file('index.html')
+    except HandledException as error:
+        return jsonify(error.json())
 
 @APP.route('/link', methods=['POST'])
-def link():
+def rest_link():
     """ Save the documents in a couchdb and returns an id
     """
-    payload = request.json
-    if APP.args.username and APP.args.password and APP.args.url:
-        username = APP.args.username
-        password = APP.args.password
-        url = APP.args.url
-        response = requests.post("%s" % url, json=payload, auth=(username, password))
-        return jsonify({"id": response.json()['id']})
-    return jsonify({"error": "true"})
+    try:
+        response = link(payload=request.json, typ="link")
+        return jsonify(response)
+    except HandledException as error:
+        return jsonify(error.json())
 
+@APP.route('/render', methods=['POST'])
+def rest_render():
+    """ render path
+    """
+    try:
+        response = render(payload=request.json, typ="page")
+        return jsonify(response)
+    except HandledException as error:
+        return jsonify(error.json())
 
 @APP.route('/retrieve', methods=['GET'])
-def retrieve():
+def rest_retrieve():
     """ return a doc from the couchdb
     """
-    docid = request.args.get('id')
-    if APP.args.username and APP.args.password and APP.args.url:
-        username = APP.args.username
-        password = APP.args.password
-        url = APP.args.url
-        response = requests.get("%s/%s?include_docs=true" % (url, docid), auth=(username, password))
-        if response.status_code != 200:
-            return jsonify({"error": "true"})
-        doc = response.json()
-        return jsonify({"data": doc['data'], "jinja": doc['template']})
-    return jsonify({"error": "true"})
+    try:
+        response = retrieve(doc_id=request.args.get('id'), typ="link")
+        return jsonify(response)
+    except HandledException as error:
+        return jsonify(error.json())
 
 @APP.route('/enablelink', methods=['GET'])
 def enablelink():
@@ -307,23 +189,13 @@ def parse_args():
     args.url = os.environ.get('COUCH_URL', False)
     return args
 
-def load_filters(args):
-    """ load the filters
-    """
-    ansible_filters = pack_ansible_filters()
-    if args.custom_filters:
-        custom_filters = pack_custom_filters(args.custom_filters)
-        filters = ansible_filters + custom_filters
-    else:
-        filters = ansible_filters
-    return filters
-
 def main():
     """ main
     """
     APP.args = parse_args()
-    APP.filters = load_filters(APP.args)
+    APP.filters = filters_load(APP.args)
     reactor_args = {}
+    APP.debug = False
     def run_twisted_wsgi():
         """ run twisted
         """
