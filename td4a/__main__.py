@@ -42,15 +42,21 @@ def filters_load(args):
         filters.extend(filter_load_dir(args.custom_filters))
     return filters
 
+def jinja_env():
+    """ return a jinja env
+    """
+    env = Environment(undefined=StrictUndefined)
+    env.trim_blocks = True
+    for entry in APP.filters:
+        env.filters[entry[0]] = entry[1]
+    return env
+
 @ExceptionHandler
 def jinja_unresolved(template, typ):
     """ Check a jinja template for any unresolved vars
     """
     _ = typ
-    env = Environment(undefined=StrictUndefined)
-    env.trim_blocks = True
-    for entry in APP.filters:
-        env.filters[entry[0]] = entry[1]
+    env = jinja_env()
     unresolved = meta.find_undeclared_variables(env.parse(template))
     return unresolved
 
@@ -59,10 +65,7 @@ def jinja_render(data, template, typ):
     """ Render a jinja template
     """
     _ = typ
-    env = Environment(undefined=StrictUndefined)
-    env.trim_blocks = True
-    for entry in APP.filters:
-        env.filters[entry[0]] = entry[1]
+    env = jinja_env()
     result = env.from_string(template).render(data)
     return result
 
@@ -74,7 +77,6 @@ def yaml_parse(string, typ):
     yaml = Td4aYaml()
     data = yaml.load(string)
     return data
-
 
 @ExceptionHandler
 def link(payload, typ):
