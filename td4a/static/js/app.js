@@ -95,20 +95,17 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
          })
       .then(function(response) {
           if (response.status == 200) {
-            if ('data' in response.data && 'jinja' in response.data) {
-              $scope.template = response.data
+            if ("handled_error" in response.data) {
+              $scope.handledError(response.data.handled_error)
             } else {
-              var toast = $mdToast.simple()
-                .textContent("Document ID not found")
-                .action('close')
-                .highlightAction(true)
-                .highlightClass('md-warn')
-                .position('top right')
-                .hideDelay('3000');
-              $mdToast.show(toast)
+              $scope.template = response.data
             }
           }
-        })
+        }) // then
+        .catch(function(error) {
+          console.log(error.data)
+        }) //catch
+
   } else {
     $scope.template = localStorageService.get('data')
   };
@@ -124,6 +121,34 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
           }
     })
 
+  $scope.handledError = function(error) {
+    console.log(error.raw_error)
+    if (error.line_number) {
+        var errorMessage = `${error.title} ${error.details} Line number: ${error.line_number}\n`;
+        var actualLineNumber = error.line_number -1 ;
+        if (error.in == "template") {
+          var myEditor = angular.element(document.getElementById('templateEditor'))
+        } else if (error.in == "data") {
+          var myEditor = angular.element(document.getElementById('dataEditor'))
+        }
+         var codeMirrorEditor = myEditor[0].childNodes[0].CodeMirror
+         $scope.error.codeMirrorEditor = codeMirrorEditor
+         $scope.error.line_number = actualLineNumber
+         $scope.error.codeMirrorEditor.addLineClass($scope.error.line_number, 'wrap', 'error');
+         codeMirrorEditor.scrollIntoView({line: actualLineNumber});
+    } else {
+        var errorMessage = `${error.title} ${error.details}\n`;
+    }
+    var toast = $mdToast.simple()
+      .textContent(errorMessage)
+      .action('close')
+      .highlightAction(true)
+      .highlightClass('md-warn')
+      .position('top right')
+      .hideDelay('60000');
+    $mdToast.show(toast)
+  };
+
   $scope.link = function() {
     $http({
           method  : 'POST',
@@ -133,21 +158,17 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
          })
       .then(function(response) {
           if (response.status == 200) {
-            if ('id' in response.data) {
-              $location.search(`id=${response.data.id}`)
+            if ("handled_error" in response.data) {
+              $scope.handledError(response.data.handled_error)
             } else {
-              var toast = $mdToast.simple()
-                .textContent("Error building link for document.")
-                .action('close')
-                .highlightAction(true)
-                .highlightClass('md-warn')
-                .position('top right')
-                .hideDelay('3000');
-              $mdToast.show(toast)
+              $location.search(`id=${response.data.id}`)
             }
-          }      
-        })
-  }; //link
+          }
+        }) //then
+        .catch(function(error) {
+          console.log(error.data)
+        }) //catch
+  }
 
   $scope.render = function() {
     $scope.renderButton = true;
@@ -161,39 +182,18 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
           headers : { 'Content-Type': 'application/json' }
          })
       .then(function(response) {
-          if (response.status == 200) {
-              $scope.template.result = response.data.result;
-              $scope.renderButton = false;
-            }
-          })
-      .catch(function(error) {
-        if ("Error" in error.data) {
-          var errorMessage = `${error.data.Error.title}, ${error.data.Error.details}, line number: ${error.data.Error.line_number}\n`;
-          var toast = $mdToast.simple()
-            .textContent(errorMessage)
-            .action('close')
-            .highlightAction(true)
-            .highlightClass('md-warn')
-            .position('top right')
-            .hideDelay('60000');
-          $mdToast.show(toast)
-
-          var actualLineNumber = error.data.Error.line_number -1 ;
-          if (error.data.Error.in == "template") {
-            var myEditor = angular.element(document.getElementById('templateEditor'))
-          } else if (error.data.Error.in == "data") {
-            var myEditor = angular.element(document.getElementById('dataEditor'))
+        if (response.status == 200) {
+          if ("handled_error" in response.data) {
+            $scope.handledError(response.data.handled_error)
+          } else {
+            $scope.template.result = response.data.result;
           }
-           var codeMirrorEditor = myEditor[0].childNodes[0].CodeMirror
-           $scope.error.codeMirrorEditor = codeMirrorEditor
-           $scope.error.line_number = actualLineNumber
-           $scope.error.codeMirrorEditor.addLineClass($scope.error.line_number, 'wrap', 'error');
-           codeMirrorEditor.scrollIntoView({line: actualLineNumber});
-           $scope.renderButton = false;
-        } else {
-          console.log(error.data)
           $scope.renderButton = false;
-        } //else
+        }
+      })
+      .catch(function(error) {
+        console.log(error.data)
+        $scope.renderButton = false;
       }) //catch
     } //render
 }); //controller
