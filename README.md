@@ -34,7 +34,7 @@ https://hub.docker.com/r/cidrblock/td4a/
 $ virtualenv venv
 $ source venv/bin/activate
 $ pip install td4a
-$ python -m td4a
+$ td4a-server
 ```
 
 The pip package can be found here:
@@ -64,7 +64,7 @@ The UI is broken into three sections:
 TD4A can load custom filters from a directory specified from the command line:
 
 ```
-python -m td4a -f ./filter_plugins
+td4a-server -f ./filter_plugins
 ```
 
 ### Saving docs and building links
