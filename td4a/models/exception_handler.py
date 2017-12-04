@@ -97,7 +97,7 @@ class ExceptionHandler(object):
                                    line_number=None)
 
     def unhandled(self):
-        print self.exc_type, self.exc_value, self.exc_traceback
+        print self.exc_type, self.exc_value, self.exc_traceback, self.tback
         message = "Please see the console for details. %s" % str(self.error)
         return self.error_response(message=message,
                                    line_number=None)

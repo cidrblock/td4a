@@ -11,6 +11,7 @@ setup(name='td4a',
       packages=[
           'td4a'
       ],
+      scripts=['td4a-server'],
       install_requires=[
           'ansible==2.4.1.0',
           'Flask==0.12.2',
