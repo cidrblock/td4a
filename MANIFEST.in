@@ -1,3 +1,4 @@
 recursive-include td4a/static *
-recursive-include td4a/filter_plugins *
+recursive-include td4a/models *
+recursive-include td4a/controllers *
 global-exclude *.pyc

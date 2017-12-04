@@ -1,0 +1,42 @@
+#! /usr/bin/env python
+from td4a import app
+from td4a.models.filters import filters_load
+from argparse import ArgumentParser, RawTextHelpFormatter
+import os
+from twisted.internet import reactor
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
+
+def parse_args():
+    """ parse the cli args and add environ
+    """
+    parser = ArgumentParser(description='',
+                            formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-f', action="store", dest="custom_filters",
+                        required=False,
+                        help="A folder containing custom filters.")
+    args = parser.parse_args()
+    args.username = os.environ.get('COUCH_USERNAME', False)
+    args.password = os.environ.get('COUCH_PASSWORD', False)
+    args.enable_links = os.environ.get('ENABLE_LINK', False)
+    args.url = os.environ.get('COUCH_URL', False)
+    return args
+
+def main():
+    app.args = parse_args()
+    app.filters = filters_load(app.args.custom_filters)
+    reactor_args = {}
+    app.debug = False
+    def wsgi():
+        resource = WSGIResource(reactor, reactor.getThreadPool(), app)
+        site = Site(resource)
+        reactor.listenTCP(5000, site)
+        reactor.run(**reactor_args)
+    if app.debug:
+        reactor_args['installSignalHandlers'] = 0
+        import werkzeug.serving
+        wsgi = werkzeug.serving.run_with_reloader(wsgi)
+    wsgi()
+
+if __name__ == '__main__':
+    main()

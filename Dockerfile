@@ -15,4 +15,4 @@ RUN rm -rf /var/cache/apk/*
 
 RUN mkdir /filter_plugins
 # Start td4a
-CMD [ "python", "-m", "td4a", "-f", "/filter_plugins" ]
+CMD [ "td4a-server", "-f", "/filter_plugins" ]
