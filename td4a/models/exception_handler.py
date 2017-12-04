@@ -24,7 +24,8 @@ class ExceptionHandler(object):
             "ruamel.yaml.constructor.ConstructorError": self.constructor_error,
             "ruamel.yaml.constructor.DuplicateKeyError": self.duplicate_key_error,
             "ruamel.yaml.scanner.ScannerError": self.scanner_error,
-            "jinja2.exceptions": self.jinja_error
+            "jinja2.exceptions": self.jinja_error,
+            "TypeError": self.type_error
         }
 
     def __call__(self, *args, **kwargs):
@@ -39,7 +40,7 @@ class ExceptionHandler(object):
             if error_module:
                 full_error = "%s.%s" % (error.__module__, self.exc_type.__name__)
             else:
-                full_error = None
+                full_error = self.exc_type.__name__
             handler = self.error_map.get(full_error,
                                          self.error_map.get(error_module,
                                                             self.unhandled))
@@ -96,8 +97,15 @@ class ExceptionHandler(object):
         return self.error_response(message=message,
                                    line_number=None)
 
+    def type_error(self):
+        message = str(self.error)
+        line_number = next(x for x in self.tback if re.search('^<.*>$', x[0]))[1]
+        return self.error_response(message=message,
+                                   line_number=line_number)
+
     def unhandled(self):
         print self.exc_type, self.exc_value, self.exc_traceback, self.tback
+        line_number = next(x for x in self.tback if re.search('^<.*>$', x[0]))[1]
         message = "Please see the console for details. %s" % str(self.error)
         return self.error_response(message=message,
-                                   line_number=None)
+                                   line_number=line_number)
