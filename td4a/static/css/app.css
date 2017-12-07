@@ -40,8 +40,8 @@ body {
 .menubar {
   display: flex;
   flex-direction: row;
-  min-height: 35px;
-  line-height: 35px;
+  min-height: 40px;
+  line-height: 40px;
 }
 .title {
   justify-content: center;
@@ -67,6 +67,39 @@ body {
 .md-button.md-ok:not([disabled]):hover {
   background-color: darkgreen;
 }
+md-autocomplete {
+  width: 50%;
+}
+md-autocomplete input:not(.md-input) {
+    background: black;
+    color: white !important;
+    width: 50%;
+}
+md-autocomplete md-autocomplete-wrap, .md-autocomplete-suggestions,  .md-autocomplete-suggestions li {
+  background: black !important;
+  color: white !important;
+}
+
+.md-autocomplete-suggestions-container.md-default-theme li.selected,
+.md-autocomplete-suggestions-container li.selected,
+.md-autocomplete-suggestions-container.md-default-theme li:hover,
+.md-autocomplete-suggestions-container li:hover {
+  background: darkgrey !important;
+  color: black !important;
+}
+.md-autocomplete-suggestions-container.md-default-theme li .highlight,
+.md-autocomplete-suggestions-container li .highlight {
+    color: rgb(63,81,181);
+}
+
+
+md-select {
+    margin: 0px 0 0px 0 !important;
+}
+md-select-value, .md-select-icon {
+    color: white !important;
+}
+
 .column {
   height: 100%;
   display: flex;

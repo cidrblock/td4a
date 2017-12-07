@@ -18,6 +18,6 @@ setup(name='td4a',
           'netaddr==0.7.19',
           'Twisted==17.9.0',
           'requests==2.18.4',
-          'ruamel.yaml==0.15.34'
+          'ruamel.yaml==0.15.35'
       ],
       zip_safe=False)

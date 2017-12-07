@@ -13,35 +13,105 @@ All jinja2 filters are supported along with the filter plguins from Ansible vers
 
 ### Installation:
 
-#### docker
-
-If you do not have custom filter plugins.
+#### using docker:
 
 ```
-docker run -p 5000:5000 cidrblock/td4a
+docker pull cidrblock/td4a
 ```
 
-TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
-```
-docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
-```
-The docker file can be found here:
+The docker hub page can be found here:
 
 https://hub.docker.com/r/cidrblock/td4a/
 
-#### pip:
+#### using the cli:
 ```
 $ virtualenv venv
 $ source venv/bin/activate
 $ pip install td4a
-$ td4a-server
 ```
 
 The pip package can be found here:
 
 https://pypi.python.org/pypi/td4a
 
-### Usage
+### Starting the TD4A server
+
+
+#### Simple
+
+##### using docker:
+```
+docker run -p 5000:5000 cidrblock/td4a
+```
+
+##### using the cli:
+```
+td4a-server
+```
+
+##### open your browser to:
+
+http://127.0.0.1:5000
+
+#### Loading custom filter plugins
+
+##### using docker:
+
+TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
+```
+docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
+```
+
+##### using the cli:
+
+TD4A can load custom filters from a directory specified from the command line:
+```
+td4a-server -f ./my_filter_plugins
+```
+
+#### Loading an ansible inventory
+
+##### using docker:
+
+TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
+```
+docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
+```
+
+##### using the cli:
+
+TD4A can load multiple ansible inventories, specifc each with `-i` on the command line:
+```
+td4a-server -i ./my_ansible_inventory -v 'my_vault_password'
+```
+
+#### Enabling storage and links using a couch database
+
+TD4A has the ability to store data and templates in a CouchDB.  This is disabled by defualt.
+
+The CouchDB needs to previously created.
+
+To enable link support, and add the link button to the UI, set the following environ variables:
+
+##### using docker:
+
+```
+docker run  -p 5000:5000 \
+            -v `pwd`/my_filter_plugins:/filter_plugins \
+            -e "COUCH_USERNAME=admin" \
+            -e "COUCH_PASSWORD=password" \
+            -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
+            cidrblock/td4a
+```
+
+##### using the cli:
+```
+export COUCH_USERNAME=admin
+export COUCH_PASSWORD=password
+export COUCH_URL=http://localhost:5984/td4a
+```
+
+### User Interface
 
 The interface is browser based and has been tested using Chrome. If your browser did not automatically open when TD4A was started, you can visit http://127.0.0.1:5000 to see the interface.
 
@@ -51,49 +121,13 @@ The UI is broken into three sections:
 2) TEMPLATE, the jinja2 template to be rendered.
 3) RESULT, after clicking the render button, the result pane will be populated with the rendered template.
 
-### Keyboard shortcuts
+#### Keyboard shortcuts
 
 `cmd+r`: Render the template
 
 `cmd+s`: Save the data in browser local storage
 
 `cmd+b`: Begin new, clear the screen
-
-### Custom filters
-
-TD4A can load custom filters from a directory specified from the command line:
-
-```
-td4a-server -f ./filter_plugins
-```
-
-### Saving docs and building links
-
-TD4A has the ability to store data and templates in a CouchDB.  This is disabled by defualt.
-
-The CouchDB needs to previously created.
-
-To enable link support, and add the link button to the UI, set the following environ variables:
-
-#### docker:
-
-```
-docker run  -p 5000:5000 \
-            -v `pwd`/my_filter_plugins:/filter_plugins \
-            -e "COUCH_USERNAME=admin" \
-            -e "COUCH_PASSWORD=password" \
-            -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
-            -e "ENABLE_LINK=true" \
-            td4a
-```
-
-#### pip:
-```
-export COUCH_USERNAME=admin
-export COUCH_PASSWORD=password
-export COUCH_URL=http://localhost:5984/td4a
-export ENABLE_LINK=True
-```
 
 ### Python version
 

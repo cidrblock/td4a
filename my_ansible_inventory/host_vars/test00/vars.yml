@@ -1,0 +1,24 @@
+a: "{{ b }}"
+b:
+  c: this
+  d: that
+
+foo: "{{ bar }}"
+bar:
+- 1
+- 2
+- 3
+
+ansible_ssh_pass: "{{ lookup('env', 'FOO') }}"
+cisco_xr_cli:
+  username: "{{ ansible_ssh_user }}"
+
+
+y: "{{ z }}"
+z:
+  aa:
+    bb:
+      cc:
+        dd: dd
+
+f: "{{ bar + bar }}"

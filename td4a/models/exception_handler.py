@@ -75,14 +75,21 @@ class ExceptionHandler(object):
 
     def jinja_error(self):
         message = str(self.error).replace("'ruamel.yaml.comments.CommentedMap object'", 'Object')
-        line_number = next(x for x in self.tback if re.search('^<.*>$', x[0]))[1]
+        line_numbers = [x for x in self.tback if re.search('^<.*>$', x[0])]
+        if line_numbers:
+            line_number = line_numbers[0][1]
+        else:
+            line_number = 'unknown'
         return self.error_response(message=message,
                                    line_number=line_number)
 
     def parser_error(self):
         line_number = self.error.problem_mark.line + 1
-        message = next(x for x in str(self.error).splitlines()
-                       if x.startswith('expected'))
+        messages = [x for x in str(self.error).splitlines() if x.startswith('expected')]
+        if messages:
+            message = messages[0]
+        else:
+            message = str(self.error)
         return self.error_response(message=message,
                                    line_number=line_number)
 
@@ -99,13 +106,21 @@ class ExceptionHandler(object):
 
     def type_error(self):
         message = str(self.error)
-        line_number = next(x for x in self.tback if re.search('^<.*>$', x[0]))[1]
+        line_numbers = [x for x in self.tback if re.search('^<.*>$', x[0])]
+        if line_numbers:
+            line_number = line_numbers[0][1]
+        else:
+            line_number = 'unknown'
         return self.error_response(message=message,
                                    line_number=line_number)
 
     def unhandled(self):
-        print self.exc_type, self.exc_value, self.exc_traceback, self.tback
-        line_number = next(x for x in self.tback if re.search('^<.*>$', x[0]))[1]
+        print self.exc_type, self.exc_value, self.exc_traceback, self.tback, self.error
+        line_numbers = [x for x in self.tback if re.search('^<.*>$', x[0])]
+        if line_numbers:
+            line_number = line_numbers[0][1]
+        else:
+            line_number = 'unknown'
         message = "Please see the console for details. %s" % str(self.error)
         return self.error_response(message=message,
                                    line_number=line_number)

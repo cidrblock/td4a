@@ -13,6 +13,7 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
   $scope.template = { data: '', jinja: '' }
   $scope.renderButton = false;
   $scope.showDemo = $cookies.firstVisit || "";
+
   extraKeys= {
     Tab: function(cm) {
       var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
@@ -110,16 +111,42 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
     $scope.template = localStorageService.get('data')
   };
 
-
   $http({
         method  : 'GET',
-        url     : 'enablelink',
+        url     : 'config',
        })
     .then(function(response) {
         if (response.status == 200) {
-            $scope.enableLink = response.data.enabled
-          }
-    })
+            $scope.config = response.data
+            console.log($scope.config)
+            if ($scope.config.inventory) {
+              $http({
+                    method  : 'GET',
+                    url     : 'hosts',
+                   })
+                .then(function(response) {
+                    if (response.status == 200) {
+                        $scope.hosts = response.data.hosts
+                      }
+                }) // then
+            } // if inventory
+          } // if 200
+    }) // then
+
+
+  $scope.SelectedItemChange = function(host) {
+    if (host != null) {
+      $http({
+            method  : 'GET',
+            url     : `inventory?host=${host}`,
+           })
+        .then(function(response) {
+            if (response.status == 200) {
+                $scope.template.data = response.data.data
+              }
+        })
+    }
+  }
 
   $scope.handledError = function(error) {
     console.log(error.raw_error)
@@ -147,6 +174,7 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
       .position('top right')
       .hideDelay('60000');
     $mdToast.show(toast)
+    console.log("shown?")
   };
 
   $scope.link = function() {

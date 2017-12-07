@@ -23,8 +23,19 @@
       <div class="column">
         <div class="menubar">
           <div class="title">DATA</div>
-          <div class="buttons">
-          </div>
+            <md-autocomplete
+                ng-show="config.inventory"
+                md-selected-item="selectedItem"
+                md-search-text="searchText"
+                md-selected-item-change="SelectedItemChange(selectedItem)"
+                md-items="host in hosts | filter:searchText"
+                md-item-text="host"
+                md-min-length="0"
+                placeholder="Load device">
+              <md-item-template>
+                  <span md-highlight-text="searchText" md-highlight-flags="^i">{{ host }}</span>
+              </md-item-template>
+            </md-autocomplete>
         </div>
         <div class="editor" id="dataEditor" ng-model="template.data" ui-codemirror="codemirror.dataOptions"></div>
       </div>
@@ -48,7 +59,7 @@
         <div class="menubar">
           <div class="title">RESULT</div>
           <div class="buttons" ng-cloak>
-            <md-button class="md-small md-raised" ng-disabled="!enableLink" ng-click="link()">
+            <md-button class="md-small md-raised" ng-disabled="!config.link" ng-click="link()">
               <md-icon aria-label="code" class="material-icons">link</md-icon>
               link
             </md-button>

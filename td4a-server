@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from td4a import app
 from td4a.models.filters import filters_load
+from td4a.models.inventory import inventory_load
 from argparse import ArgumentParser, RawTextHelpFormatter
 import os
 from twisted.internet import reactor
@@ -15,16 +16,25 @@ def parse_args():
     parser.add_argument('-f', action="store", dest="custom_filters",
                         required=False,
                         help="A folder containing custom filters.")
+    parser.add_argument('-i', action="append", dest="inventory_source",
+                        required=False,
+                        help="A folder containing the inventory.")
+    parser.add_argument('-v', action="store", dest="vault_secret",
+                        required=False,
+                        help="A vault secret.")
     args = parser.parse_args()
     args.username = os.environ.get('COUCH_USERNAME', False)
     args.password = os.environ.get('COUCH_PASSWORD', False)
-    args.enable_links = os.environ.get('ENABLE_LINK', False)
     args.url = os.environ.get('COUCH_URL', False)
     return args
 
 def main():
+    print "Loading..."
     app.args = parse_args()
     app.filters = filters_load(app.args.custom_filters)
+    if app.args.inventory_source:
+        app.inventory = inventory_load(inventory_sources=app.args.inventory_source,
+                                       vault_secret=app.args.vault_secret)
     reactor_args = {}
     app.debug = False
     def wsgi():
@@ -36,6 +46,7 @@ def main():
         reactor_args['installSignalHandlers'] = 0
         import werkzeug.serving
         wsgi = werkzeug.serving.run_with_reloader(wsgi)
+    print "Ready."
     wsgi()
 
 if __name__ == '__main__':
