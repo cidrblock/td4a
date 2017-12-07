@@ -1,2 +1,2 @@
-FROM cidrblock/td4a:1.6
+FROM cidrblock/td4a:1.7
 EXPOSE 5000
