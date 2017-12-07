@@ -1,0 +1,29 @@
+ansible_ssh_pass: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+
+interfaces:
+  Ethernet4/10:
+    description: siteassw100-g0/1-siteasrt001-eth4/10
+    name: Ethernet4/10
+    shutdown:
+      negate: true
+    switchport:
+      mode:
+      - trunk
+      switchport: true
+  Ethernet4/11:
+    channel_group:
+      id: 31
+      mode: active
+    description: unity1interface1
+    mtu: 9216
+    name: Ethernet4/11
+    shutdown:
+      negate: true
+    switchport:
+      mode:
+      - trunk
+      switchport: true
+      trunk:
+        allowed_vlans:
+          vlans: 3605,3607
+        native_vlan: 5

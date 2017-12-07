@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='td4a',
-      version='1.5',
+      version='1.6',
       description='A browser based jinja template renderer',
       url='http://github.com/cidrblock/td4a',
       author='Bradley A. Thornton',
@@ -18,6 +18,6 @@ setup(name='td4a',
           'netaddr==0.7.19',
           'Twisted==17.9.0',
           'requests==2.18.4',
-          'ruamel.yaml==0.15.34'
+          'ruamel.yaml==0.15.35'
       ],
       zip_safe=False)
