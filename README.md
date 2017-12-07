@@ -59,7 +59,11 @@ http://127.0.0.1:5000
 
 TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
 ```
-docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
+docker run  -p 5000:5000 \
+            -it \
+            -v `pwd`/my_filter_plugins:/filter_plugins            
+            cidrblock/td4a \
+            td4a-server -f /filter_plugins
 ```
 
 ##### using the cli:
@@ -73,10 +77,29 @@ td4a-server -f ./my_filter_plugins
 
 ##### using docker:
 
-TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
+Mount the inventory as `/inventory` in the container, and run TD4A with the `-i` option.
 ```
-docker run  -p 5000:5000 -v `pwd`/my_filter_plugins:/filter_plugins cidrblock/td4a
+docker run  -p 5000:5000 \
+            -it \
+            -v '/Users/me/github/ansible_network_inventory:/inventory' \
+            cidrblock/td4a \
+            td4a-server -i /inventory -v 'my_vault_password'
 ```
+
+If environment variables are needed for a dynamic inventory, they can be passed to the docker container.
+```
+docker run  -p 5000:5000 \
+            -it \
+            -v `pwd`/my_filter_plugins:/filter_plugins \
+            -v '/Users/me/github/ansible_network_inventory:/inventory' \
+            -e "COUCH_USERNAME=admin" \
+            -e "COUCH_PASSWORD=password" \
+            -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
+            -e "DYNAMIC_INVENTORY_USERNAME=api" \
+            -e "DYNAMIC_INVENTORY_PASSWORD=password" \
+            cidrblock/td4a \
+            td4a-server -f /filter_plugins -i /inventory -v 'my_vault_password'
+```            
 
 ##### using the cli:
 
@@ -101,7 +124,8 @@ docker run  -p 5000:5000 \
             -e "COUCH_USERNAME=admin" \
             -e "COUCH_PASSWORD=password" \
             -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
-            cidrblock/td4a
+            cidrblock/td4a \
+            td4a-server -f /filter_plugins
 ```
 
 ##### using the cli:
