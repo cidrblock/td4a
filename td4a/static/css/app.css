@@ -37,28 +37,29 @@ body {
   height: 100%;
   float: left;
 }
-.menubar {
-  display: flex;
-  flex-direction: row;
-  min-height: 40px;
-  line-height: 40px;
+
+menubar {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    align-items: center;
+    /* width: 100%; */
+    height: 40px;
+    padding-left: 5px;
+    padding-right: 0px;
 }
-.title {
-  justify-content: center;
-  align-items: center;
-  width: 50%;
-  padding-left: 5px;
+
+menubar menuitem:first-child {
+  margin-right: auto;
 }
-.buttons {
-  text-align: right;
-  width: 50%;
-}
+
 .md-button.md-small {
   min-width: 1%;
   line-height: 20px;
   min-height: 1%;
   vertical-align: top;
   font-size: 10px;
+  margin: 2px 2px;
 }
 .md-button.md-ok {
   background-color: darkgreen;
@@ -67,14 +68,15 @@ body {
 .md-button.md-ok:not([disabled]):hover {
   background-color: darkgreen;
 }
+
 md-autocomplete {
-  width: 50%;
+  min-width: 250px;
 }
 md-autocomplete input:not(.md-input) {
     background: black;
     color: white !important;
-    width: 50%;
 }
+
 md-autocomplete md-autocomplete-wrap, .md-autocomplete-suggestions,  .md-autocomplete-suggestions li {
   background: black !important;
   color: white !important;
@@ -90,14 +92,6 @@ md-autocomplete md-autocomplete-wrap, .md-autocomplete-suggestions,  .md-autocom
 .md-autocomplete-suggestions-container.md-default-theme li .highlight,
 .md-autocomplete-suggestions-container li .highlight {
     color: rgb(63,81,181);
-}
-
-
-md-select {
-    margin: 0px 0 0px 0 !important;
-}
-md-select-value, .md-select-icon {
-    color: white !important;
 }
 
 .column {

@@ -18,13 +18,14 @@
   <script type="text/javascript" src="js/app.js"></script>
 </head>
 <body ng-app="mainController" ng-controller='main'>
-  <split direction="horizontal" ng-transclude>
+  <split direction="horizontal" ng-transclude ng-cloak>
     <split-area size="33" ng-transclude>
       <div class="column">
-        <div class="menubar">
-          <div class="title">DATA</div>
+        <menubar>
+          <menuitem ng-cloak>{{ config.p1.title }}</menuitem>
+          <menuitem ng-cloak>
             <md-autocomplete
-                ng-show="config.inventory"
+                ng-show="!config.inventory"
                 md-selected-item="selectedItem"
                 md-search-text="searchText"
                 md-selected-item-change="SelectedItemChange(selectedItem)"
@@ -36,40 +37,49 @@
                   <span md-highlight-text="searchText" md-highlight-flags="^i">{{ host }}</span>
               </md-item-template>
             </md-autocomplete>
-        </div>
-        <div class="editor" id="dataEditor" ng-model="template.data" ui-codemirror="codemirror.dataOptions"></div>
-      </div>
-    </split-area>
-    <split-area size="33" ng-transclude>
-      <div class="column">
-        <div class="menubar">
-          <div class="title">TEMPLATE</div>
-          <div class="buttons">
-            <md-button ng-disabled="renderButton" ng-click="render()" class="md-small md-raised md-primary">
+          </menuitem>
+          <menuitem ng-cloak>
+            <md-button ng-show="config.p1.b1.show" ng-click="p1_b1_click()" class="md-small md-raised md-primary">
               <md-icon aria-label="render" class="material-icons">create</md-icon>
-              render
+              {{ config.p1.text }}
             </md-button>
-          </div>
-        </div>
-        <div class="editor" id="templateEditor" ng-model="template.jinja" ui-codemirror="codemirror.templateOptions"></div>
+          </menuitem>
+        </menubar>
+        <div class="editor" id="p1_editor" ng-model="panels.p1" ui-codemirror="config.p1.options"></div>
       </div>
     </split-area>
     <split-area size="33" ng-transclude>
       <div class="column">
-        <div class="menubar">
-          <div class="title">RESULT</div>
-          <div class="buttons" ng-cloak>
-            <md-button class="md-small md-raised" ng-disabled="!config.link" ng-click="link()">
-              <md-icon aria-label="code" class="material-icons">link</md-icon>
-              link
+        <menubar>
+          <menuitem ng-cloak>{{ config.p2.title }}</menuitem>
+          <menuitem>
+            <md-button ng-show="config.p2.b1.show" ng-click="p2_b1_click()" class="md-small md-raised md-primary">
+              <md-icon aria-label="config.p2.b1.text" class="material-icons">create</md-icon>
+              {{ config.p2.b1.text }}
             </md-button>
+          </menuitem>
+        </menubar>
+        <div class="editor" id="p2_editor" ng-model="panels.p2" ui-codemirror="config.p2.options"></div>
+      </div>
+    </split-area>
+    <split-area size="33" ng-transclude>
+      <div class="column">
+        <menubar>
+          <menuitem ng-cloak>{{ config.p3.title }}</menuitem>
+          <menuitem ng-cloak>
+            <md-button ng-show="config.p3.b1.show" ng-click="link()" class="md-small md-raised">
+              <md-icon aria-label="config.p3.b1.text" class="material-icons">link</md-icon>
+              {{ config.p3.b1.text }}
+            </md-button>
+          </menuitem>
+          <menuitem ng-cloak>
             <md-button class="md-small md-raised" target="_blank" ng-href="http://github.com/cidrblock/td4a">
               <md-icon aria-label="code" class="material-icons">code</md-icon>
               github
             </md-button>
-          </div>
-        </div>
-        <div class="editor" ng-model="template.result" ui-codemirror="codemirror.resultOptions"></div>
+          </menuitem>
+        </menubar>
+        <div class="editor" ng-model="panels.p3" ui-codemirror="config.p3.options"></div>
       </div>
     </split-area>
   </split>

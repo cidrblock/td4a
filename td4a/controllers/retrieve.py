@@ -17,7 +17,7 @@ def retrieve(doc_id, typ):
     cdoc = requests.get("%s/%s?include_docs=true" % (url, doc_id), auth=auth)
     doc = cdoc.json()
     if cdoc.status_code == 200:
-        response = {"data": doc['data'], "jinja": doc['template']}
+        response = {"panels": doc['panels'], "config": doc['config']}
     else:
         response = {"handled_error": {
             "in": "document retrieval",

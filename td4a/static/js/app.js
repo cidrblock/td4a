@@ -10,17 +10,18 @@ var app = angular.module('mainController', ['ngRoute', 'ngMaterial', 'ngMessages
 
 app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $routeParams, $location, $cookies, localStorageService) {
   $scope.error = {}
-  $scope.template = { data: '', jinja: '' }
-  $scope.renderButton = false;
-  $scope.showDemo = $cookies.firstVisit || "";
+  $scope.panels = {}
+  $scope.config = {}
+  $scope.demoShown = $cookies.get('demoShown') || false;
 
-  extraKeys= {
+  $scope.extraKeys = {
     Tab: function(cm) {
       var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
       cm.replaceSelection(spaces);
     },
     "Cmd-S": function(cm) {
-      localStorageService.set('data', $scope.template)
+      localStorageService.set('panels', $scope.panels)
+      localStorageService.set('config', $scope.config)
       var toast = $mdToast.simple()
         .textContent("Saved")
         .action('close')
@@ -31,119 +32,53 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
       $mdToast.show(toast)
     },
     "Cmd-R": function(cm) {
-      $scope.render()
+      $scope.p2_b1_click()
     },
     "Cmd-B": function(cm) {
-      $scope.template = { data: '', jinja: '', result: '' };
+      $scope.panels = { p1: '', p2: '', p3: '' };
       $timeout(function() {cm.refresh();});
     },
 
   }
 
-  $scope.codemirror = {
-    dataOptions:
-     {
-        lineNumbers: true,
-        theme:'material',
-        lineWrapping : true,
-        mode: 'yaml',
-        indentUnit: 2,
-        tabSize: 2,
-        extraKeys: extraKeys
-      },
-    templateOptions:
-     {
-        lineNumbers: true,
-        theme:'material',
-        lineWrapping : true,
-        mode: 'jinja2',
-        extraKeys: extraKeys
-      },
-    resultOptions:
-     {
-        lineNumbers: true,
-        theme:'material',
-        lineWrapping : true,
-        mode: 'yaml',
-      }
-  };
-
-  $scope.demoShown = $cookies.get('demoShown') || false;
-  if (!($scope.demoShown)) {
-    $cookies.put('demoShown',true);
-    $http({
-          method  : 'GET',
-          url     : 'data.yml',
-         })
-      .then(function(response) {
-          if (response.status == 200) {
-              $scope.template.data = response.data
-            }
-          })
-    $http({
-          method  : 'GET',
-          url     : 'template.j2',
-         })
-      .then(function(response) {
-          if (response.status == 200) {
-              $scope.template.jinja = response.data
-            }
-      })
-  } else if ('id' in $location.search()) {
-    $http({
-          method  : 'GET',
-          url     : `/retrieve?id=${$location.search().id}`,
-         })
-      .then(function(response) {
-          if (response.status == 200) {
-            if ("handled_error" in response.data) {
-              $scope.handledError(response.data.handled_error)
-            } else {
-              $scope.template = response.data
-            }
+  $scope.getter = function(rroute) {
+      return $http
+        .get(rroute).then(function(response) {
+          if ((typeof(response.data) == 'object') && ("handled_error" in response.data)) {
+            $scope.handledError(response.data.handled_error)
+            return response.data;
+          } else {
+            return response.data;
           }
-        }) // then
+        })
         .catch(function(error) {
-          console.log(error.data)
+          console.log(error)
+          return error
         }) //catch
-
-  } else {
-    $scope.template = localStorageService.get('data')
   };
 
-  $http({
-        method  : 'GET',
-        url     : 'config',
-       })
-    .then(function(response) {
-        if (response.status == 200) {
-            $scope.config = response.data
-            console.log($scope.config)
-            if ($scope.config.inventory) {
-              $http({
-                    method  : 'GET',
-                    url     : 'hosts',
-                   })
-                .then(function(response) {
-                    if (response.status == 200) {
-                        $scope.hosts = response.data.hosts
-                      }
-                }) // then
-            } // if inventory
-          } // if 200
-    }) // then
+  $scope.init = function() {
+    console.log($scope.config)
+    if (Object.keys($scope.config).length == 0) {
+      $scope.getter('/config')
+        .then(function(data) {
+          $scope.config = data;
+          $scope.config.p1.options.extraKeys = $scope.config.p2.options.extraKeys = $scope.extraKeys
+          $scope.inventory()
+        })
+    } else {
+      $scope.config.p1.options.extraKeys = $scope.config.p2.options.extraKeys = $scope.extraKeys
+      $scope.inventory()
 
+    }
+  }
 
-  $scope.SelectedItemChange = function(host) {
-    if (host != null) {
-      $http({
-            method  : 'GET',
-            url     : `inventory?host=${host}`,
-           })
-        .then(function(response) {
-            if (response.status == 200) {
-                $scope.template.data = response.data.data
-              }
+  $scope.inventory = function() {
+    console.log($scope.config)
+    if ($scope.config.p1.inventory) {
+      $scope.getter('/hosts')
+        .then(function(data){
+          $scope.hosts = data['hosts'];
         })
     }
   }
@@ -154,9 +89,9 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
         var errorMessage = `${error.title} ${error.details} Line number: ${error.line_number}\n`;
         var actualLineNumber = error.line_number -1 ;
         if (error.in == "template") {
-          var myEditor = angular.element(document.getElementById('templateEditor'))
+          var myEditor = angular.element(document.getElementById('p2_editor'))
         } else if (error.in == "data") {
-          var myEditor = angular.element(document.getElementById('dataEditor'))
+          var myEditor = angular.element(document.getElementById('p1_editor'))
         }
          var codeMirrorEditor = myEditor[0].childNodes[0].CodeMirror
          $scope.error.codeMirrorEditor = codeMirrorEditor
@@ -174,14 +109,13 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
       .position('top right')
       .hideDelay('60000');
     $mdToast.show(toast)
-    console.log("shown?")
   };
 
   $scope.link = function() {
     $http({
           method  : 'POST',
           url     : '/link',
-          data    : { "data": $scope.template.data, "template": $scope.template.jinja },
+          data    : {"panels": {"p1": $scope.panels.p1, "p2": $scope.panels.p2}, "config": $scope.config},
           headers : { 'Content-Type': 'application/json' }
          })
       .then(function(response) {
@@ -193,20 +127,20 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
             }
           }
         }) //then
-        .catch(function(error) {
-          console.log(error.data)
-        }) //catch
+      .catch(function(error) {
+        console.log(error.data)
+      }) //catch
   }
 
-  $scope.render = function() {
-    $scope.renderButton = true;
+  $scope.p2_b1_click = function() {
+    $scope.config.p2.b1.show = false;
     if ('line_number' in $scope.error) {
       $scope.error.codeMirrorEditor.removeLineClass($scope.error.line_number, 'wrap', 'error');
     }
     $http({
           method  : 'POST',
-          url     : '/render',
-          data    : { "data": $scope.template.data, "template": $scope.template.jinja },
+          url     : $scope.config.p2.b1.url,
+          data    : { "p1": $scope.panels.p1, "p2": $scope.panels.p2 },
           headers : { 'Content-Type': 'application/json' }
          })
       .then(function(response) {
@@ -214,14 +148,66 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
           if ("handled_error" in response.data) {
             $scope.handledError(response.data.handled_error)
           } else {
-            $scope.template.result = response.data.result;
+            Object.assign($scope.panels, response.data);
           }
-          $scope.renderButton = false;
+          $scope.config.p2.b1.show = true;
         }
       })
       .catch(function(error) {
         console.log(error.data)
-        $scope.renderButton = false;
+        $scope.config.p2.b1.show = true;
       }) //catch
     } //render
+
+  $scope.SelectedItemChange = function(host) {
+    if (host != null) {
+      $scope.getter(`inventory?host=${host}`)
+        .then(function(data) {
+          Object.assign($scope.panels, data)
+        });
+    }
+  }
+
+  $scope.showDemo = function() {
+    $scope.getter('data.yml')
+      .then(function(data) {
+        $scope.panels.p1 = data
+      })
+    $scope.getter('template.j2')
+      .then(function(data) {
+        $scope.panels.p2 = data
+      })
+  }
+
+  if ('id' in $location.search()) {
+    $scope.getter(`/retrieve?id=${$location.search().id}`)
+      .then(function(data) {
+        if ((typeof(data) == 'object') && ("handled_error" in data)) {
+          $scope.showDemo()
+          $scope.init()
+        } else {
+          Object.assign($scope.config, data['config'])
+          Object.assign($scope.panels, data['panels'])
+          $scope.init()
+        }
+      })
+  } else if (!($scope.demoShown)) {
+    $scope.showDemo()
+    $cookies.put('demoShown',true);
+    $scope.init()
+  } else if ( localStorageService.get('panels') && localStorageService.get('config')) {
+    $scope.panels = localStorageService.get('panels')
+    $scope.config = localStorageService.get('config')
+    $scope.init()
+  } else {
+    $scope.panels = { p1: '', p2: '' }
+    $scope.init()
+  };
+
+
+
+
+
+
+
 }); //controller

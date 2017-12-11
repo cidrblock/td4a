@@ -19,5 +19,5 @@ def rest_inventory():
     response_text = ''
     for section in sorted(data.keys()):
         response_text += yaml.dump({section: data[section]})
-    response = {"data": response_text}
+    response = {"p1": response_text}
     return jsonify(response)

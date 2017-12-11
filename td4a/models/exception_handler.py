@@ -120,7 +120,7 @@ class ExceptionHandler(object):
         if line_numbers:
             line_number = line_numbers[0][1]
         else:
-            line_number = 'unknown'
+            line_number = None
         message = "Please see the console for details. %s" % str(self.error)
         return self.error_response(message=message,
                                    line_number=line_number)
