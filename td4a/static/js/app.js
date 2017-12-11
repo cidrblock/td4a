@@ -58,7 +58,6 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
   };
 
   $scope.init = function() {
-    console.log($scope.config)
     if (Object.keys($scope.config).length == 0) {
       $scope.getter('/config')
         .then(function(data) {
@@ -74,7 +73,6 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
   }
 
   $scope.inventory = function() {
-    console.log($scope.config)
     if ($scope.config.p1.inventory) {
       $scope.getter('/hosts')
         .then(function(data){

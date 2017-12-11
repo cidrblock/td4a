@@ -25,7 +25,7 @@
           <menuitem ng-cloak>{{ config.p1.title }}</menuitem>
           <menuitem ng-cloak>
             <md-autocomplete
-                ng-show="!config.inventory"
+                ng-show="config.p1.inventory"
                 md-selected-item="selectedItem"
                 md-search-text="searchText"
                 md-selected-item-change="SelectedItemChange(selectedItem)"
