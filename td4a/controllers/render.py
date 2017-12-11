@@ -55,12 +55,12 @@ def render(payload, filters, typ):
     try:
         loader = YAML(typ='unsafe')
         result = None
-        if payload['data'] and payload['template']:
+        if payload['p1'] and payload['p2']:
             # check for error in data
-            yaml_parse(string=payload['data'], typ="data")
+            yaml_parse(string=payload['p1'], typ="data")
             # swap '{{ }}' for "{{ }}"
             dq_jinja = re.compile(r"'\{\{([^\{\}]+)\}\}'")
-            payload['data'] = dq_jinja.sub('"{{\\1}}"', payload['data'])
+            payload['p1'] = dq_jinja.sub('"{{\\1}}"', payload['p1'])
             # remove the quotes around dicts put into jinja
             expose_dicts = re.compile(r'"\{([^\{].*)\}"')
             # remove the quotes aournd lists put into jinja
@@ -69,8 +69,8 @@ def render(payload, filters, typ):
             dq_jinja = re.compile(r"'\{\{([^\{\}]+)\}\}'")
 
             raw_data = None
-            after_jinja = payload['data']
-            tvars = loader.load(payload['data'])
+            after_jinja = payload['p1']
+            tvars = loader.load(payload['p1'])
 
             if jinja_unresolved(after_jinja, "data"):
                 while after_jinja != raw_data:
@@ -84,10 +84,10 @@ def render(payload, filters, typ):
                     yaml_ready = dq_jinja.sub('"{{\\1}}"', yaml_ready)
                     tvars = loader.load(yaml_ready)
             result = jinja_render(data=tvars,
-                                  template=payload['template'],
+                                  template=payload['p2'],
                                   filters=filters,
                                   typ="template")
-        return {"result": result}
+        return {"p3": result}
     except HandledException as error:
         return error.json()
 

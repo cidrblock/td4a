@@ -22,6 +22,11 @@ def parse_args():
     parser.add_argument('-v', action="store", dest="vault_secret",
                         required=False,
                         help="A vault secret.")
+    parser.add_argument('-m', action="store", dest="ui_mode",
+                        choices=['jinja','schema'],
+                        required=False,
+                        default='jinja',
+                        help="The mode for the UI. (default: jinja)")
     args = parser.parse_args()
     args.username = os.environ.get('COUCH_USERNAME', False)
     args.password = os.environ.get('COUCH_PASSWORD', False)
