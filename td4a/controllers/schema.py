@@ -17,7 +17,6 @@ def schema(data, typ):
     _ = typ
     yaml = Td4aYaml()
     obj_data = yaml.load(data['p1'])
-    # sorted_obj_data = sort_commented_map(commented_map=obj_data)
     json_schema = genson.Schema()
     json_schema.add_object(obj_data)
     schema_dict = json_schema.to_dict()
@@ -33,6 +32,6 @@ def rest_schema():
     try:
         payload = request.json
         response = schema(data=payload, typ="data")
-        return jsonify({ "p2": response })
+        return jsonify({"p2": response})
     except HandledException as error:
         return jsonify(error.json())
