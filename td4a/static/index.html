@@ -40,8 +40,8 @@
           </menuitem>
           <menuitem ng-cloak>
             <md-button ng-show="config.p1.b1.show" ng-click="p1_b1_click()" class="md-small md-raised md-primary">
-              <md-icon aria-label="render" class="material-icons">create</md-icon>
-              {{ config.p1.text }}
+              <md-icon aria-label="render" class="material-icons">{{ config.p1.b1.icon }}</md-icon>
+              {{ config.p1.b1.text }}
             </md-button>
           </menuitem>
         </menubar>
@@ -54,7 +54,7 @@
           <menuitem ng-cloak>{{ config.p2.title }}</menuitem>
           <menuitem>
             <md-button ng-show="config.p2.b1.show" ng-click="p2_b1_click()" class="md-small md-raised md-primary">
-              <md-icon aria-label="config.p2.b1.text" class="material-icons">create</md-icon>
+              <md-icon aria-label="config.p2.b1.text" class="material-icons">{{ config.p2.b1.icon }}</md-icon>
               {{ config.p2.b1.text }}
             </md-button>
           </menuitem>
@@ -68,7 +68,7 @@
           <menuitem ng-cloak>{{ config.p3.title }}</menuitem>
           <menuitem ng-cloak>
             <md-button ng-show="config.p3.b1.show" ng-click="link()" class="md-small md-raised">
-              <md-icon aria-label="config.p3.b1.text" class="material-icons">link</md-icon>
+              <md-icon aria-label="config.p3.b1.text" class="material-icons">{{ config.p3.b1.icon }}</md-icon>
               {{ config.p3.b1.text }}
             </md-button>
           </menuitem>

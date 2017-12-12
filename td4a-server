@@ -23,7 +23,7 @@ def parse_args():
                         required=False,
                         help="A vault secret.")
     parser.add_argument('-m', action="store", dest="ui_mode",
-                        choices=['jinja','schema'],
+                        choices=['jinja', 'schema'],
                         required=False,
                         default='jinja',
                         help="The mode for the UI. (default: jinja)")
