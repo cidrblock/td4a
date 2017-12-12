@@ -86,9 +86,9 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
     if (error.line_number) {
         var errorMessage = `${error.title} ${error.details} Line number: ${error.line_number}\n`;
         var actualLineNumber = error.line_number -1 ;
-        if (error.in == "template") {
+        if (error.in == "p2") {
           var myEditor = angular.element(document.getElementById('p2_editor'))
-        } else if (error.in == "data") {
+        } else if (error.in == "p1") {
           var myEditor = angular.element(document.getElementById('p1_editor'))
         }
          var codeMirrorEditor = myEditor[0].childNodes[0].CodeMirror
@@ -129,6 +129,30 @@ app.controller('main', function($scope, $http, $window, $mdToast, $timeout, $rou
         console.log(error.data)
       }) //catch
   }
+
+  $scope.p1_b1_click = function() {
+    $scope.config.p1.b1.show = false;
+    $http({
+          method  : 'POST',
+          url     : $scope.config.p1.b1.url,
+          data    : { "p1": $scope.panels.p1  },
+          headers : { 'Content-Type': 'application/json' }
+         })
+      .then(function(response) {
+        if (response.status == 200) {
+          if ("handled_error" in response.data) {
+            $scope.handledError(response.data.handled_error)
+          } else {
+            Object.assign($scope.panels, response.data);
+          }
+          $scope.config.p1.b1.show = true;
+        }
+      })
+      .catch(function(error) {
+        console.log(error.data)
+        $scope.config.p1.b1.show = true;
+      }) //catch
+    } //render
 
   $scope.p2_b1_click = function() {
     $scope.config.p2.b1.show = false;

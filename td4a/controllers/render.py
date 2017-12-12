@@ -28,7 +28,7 @@ def jinja_render(data, template, filters, typ):
     """ Render a jinja template
     """
     _ = typ
-    if typ == 'data':
+    if typ == 'p1':
         env = Environment(undefined=Undefined)
     else:
         env = Environment(undefined=StrictUndefined)
@@ -57,7 +57,7 @@ def render(payload, filters, typ):
         result = None
         if payload['p1'] and payload['p2']:
             # check for error in data
-            yaml_parse(string=payload['p1'], typ="data")
+            yaml_parse(string=payload['p1'], typ="p1")
             # swap '{{ }}' for "{{ }}"
             dq_jinja = re.compile(r"'\{\{([^\{\}]+)\}\}'")
             payload['p1'] = dq_jinja.sub('"{{\\1}}"', payload['p1'])
@@ -72,13 +72,13 @@ def render(payload, filters, typ):
             after_jinja = payload['p1']
             tvars = loader.load(payload['p1'])
 
-            if jinja_unresolved(after_jinja, "data"):
+            if jinja_unresolved(template=after_jinja, type="p1"):
                 while after_jinja != raw_data:
                     raw_data = after_jinja
                     after_jinja = jinja_render(data=tvars,
                                                template=raw_data,
                                                filters=filters,
-                                               typ="data")
+                                               typ="p1")
                     yaml_ready = expose_dicts.sub("{\\1}", after_jinja)
                     yaml_ready = expose_lists1.sub("[\\1]", yaml_ready)
                     yaml_ready = dq_jinja.sub('"{{\\1}}"', yaml_ready)
@@ -86,7 +86,7 @@ def render(payload, filters, typ):
             result = jinja_render(data=tvars,
                                   template=payload['p2'],
                                   filters=filters,
-                                  typ="template")
+                                  typ="p2")
         return {"p3": result}
     except HandledException as error:
         return error.json()
