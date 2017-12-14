@@ -9,7 +9,7 @@ https://td4a.now.sh
 
 TD4A is a visual design aid for building and testing jinja2 templates.  It will combine data in yaml format with a jinja2 template and render the output.
 
-All jinja2 filters are supported along with the filter plguins from Ansible version 2.4.1.0.
+All jinja2 filters are supported along with the filter plugins from Ansible version 2.4.1.0.
 
 ### Installation:
 
@@ -53,11 +53,37 @@ td4a-server
 
 http://127.0.0.1:5000
 
-#### Loading custom filter plugins
+### Modes
+
+TD4A support two different modes of operation.
+- Templating: Build and render jinja2 templates
+- Schema: Build and validate a json schema for your data
+
+#### Enabling a mode
 
 ##### using docker:
 
-TD4A will look for custom plugins at /filter_plugins within the container. Pass your custom filter_plugins directory as a volume and expose port 5000.
+```
+docker run  -p 5000:5000 \
+            -it \
+            cidrblock/td4a \
+            td4a-server -m mode
+```
+
+##### using the cli:
+```
+td4a-server -m mode
+```
+
+where `mode` is either jinja2 (default) or schema
+
+### Additional configuration options
+
+#### Loading custom filter plugins (jinja2 mode only)
+
+##### using docker:
+
+TD4A supports custom filter plugins within the container. Pass your custom filter_plugins directory as a volume and use the -f option to specify to custom filter plugin directory.
 ```
 docker run  -p 5000:5000 \
             -it \
@@ -73,7 +99,7 @@ TD4A can load custom filters from a directory specified from the command line:
 td4a-server -f ./my_filter_plugins
 ```
 
-#### Loading an ansible inventory
+#### Loading an ansible inventory (jinja2 and schema mode)
 
 ##### using docker:
 
@@ -83,7 +109,7 @@ docker run  -p 5000:5000 \
             -it \
             -v '/Users/me/github/ansible_network_inventory:/inventory' \
             cidrblock/td4a \
-            td4a-server -i /inventory -v 'my_vault_password'
+            td4a-server -i /inventory -m mode -v 'my_vault_password'
 ```
 
 If environment variables are needed for a dynamic inventory, they can be passed to the docker container.
@@ -98,7 +124,7 @@ docker run  -p 5000:5000 \
             -e "DYNAMIC_INVENTORY_USERNAME=api" \
             -e "DYNAMIC_INVENTORY_PASSWORD=password" \
             cidrblock/td4a \
-            td4a-server -f /filter_plugins -i /inventory -v 'my_vault_password'
+            td4a-server -f /filter_plugins -m mode -i /inventory -v 'my_vault_password'
 ```            
 
 ##### using the cli:
@@ -108,9 +134,9 @@ TD4A can load multiple ansible inventories, specifc each with `-i` on the comman
 td4a-server -i ./my_ansible_inventory -v 'my_vault_password'
 ```
 
-#### Enabling storage and links using a couch database
+#### Enabling storage and links using a couch database (jinja2 and schema mode)
 
-TD4A has the ability to store data and templates in a CouchDB.  This is disabled by defualt.
+TD4A has the ability to store data and templates in a CouchDB.  This is disabled by default.
 
 The CouchDB needs to previously created.
 
@@ -125,7 +151,7 @@ docker run  -p 5000:5000 \
             -e "COUCH_PASSWORD=password" \
             -e "COUCH_URL=http://192.168.1.5:5984/td4a" \
             cidrblock/td4a \
-            td4a-server -f /filter_plugins
+            td4a-server -m mode
 ```
 
 ##### using the cli:
@@ -133,6 +159,7 @@ docker run  -p 5000:5000 \
 export COUCH_USERNAME=admin
 export COUCH_PASSWORD=password
 export COUCH_URL=http://localhost:5984/td4a
+td4a-server -m mode
 ```
 
 ### User Interface
