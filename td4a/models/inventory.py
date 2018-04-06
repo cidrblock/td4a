@@ -1,4 +1,3 @@
-from flask import current_app as app
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars.manager import VariableManager
 from ansible.inventory.manager import InventoryManager
