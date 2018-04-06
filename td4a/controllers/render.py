@@ -72,7 +72,7 @@ def render(payload, filters, typ):
             after_jinja = payload['p1']
             tvars = loader.load(payload['p1'])
 
-            if jinja_unresolved(template=after_jinja, type="p1"):
+            if jinja_unresolved(template=after_jinja, typ="p1"):
                 while after_jinja != raw_data:
                     raw_data = after_jinja
                     after_jinja = jinja_render(data=tvars,
