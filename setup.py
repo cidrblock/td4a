@@ -16,7 +16,7 @@ setup(name='td4a',
           'ansible==2.4.1.0',
           'Flask==0.12.2',
           'netaddr==0.7.19',
-          'Twisted==17.9.0',
+          'Twisted==19.7.0',
           'requests==2.18.4',
           'ruamel.yaml==0.15.35'
       ],
