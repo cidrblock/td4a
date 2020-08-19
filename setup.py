@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='td4a',
-      version='1.7',
+      version='2.0.3',
       description='A browser based jinja template renderer',
       url='http://github.com/cidrblock/td4a',
       author='Bradley A. Thornton',
@@ -13,11 +13,13 @@ setup(name='td4a',
       ],
       scripts=['td4a-server'],
       install_requires=[
-          'ansible==2.4.1.0',
-          'Flask==0.12.2',
-          'netaddr==0.7.19',
-          'Twisted==17.9.0',
-          'requests==2.18.4',
-          'ruamel.yaml==0.15.35'
+          'ansible==2.9.12',
+          'Flask==1.1.2',
+          'netaddr==0.8.0',
+          'Twisted==20.3.0',
+          'requests==2.24.0',
+          'ruamel.yaml==0.16.10',
+          'genson==1.2.1',
+          'jsonschema==3.2.0'
       ],
       zip_safe=False)

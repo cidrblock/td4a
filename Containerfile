@@ -1,4 +1,4 @@
-FROM python:2.7.14-alpine3.6
+FROM python:3.8.5-alpine3.12
 
 # Update the packages
 RUN apk update
@@ -8,7 +8,7 @@ RUN apk add gcc libffi-dev musl-dev openssl-dev sshpass make
 # RUN apk add py-crypto python-dev
 
 # Install td4a
-RUN pip install td4a==1.7
+RUN pip install td4a==2.0.3
 
 # Clear out extras
 RUN rm -rf /var/cache/apk/*

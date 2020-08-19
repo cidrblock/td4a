@@ -34,7 +34,7 @@ def parse_args():
     return args
 
 def main():
-    print "Loading..."
+    print("Loading...")
     app.args = parse_args()
     app.filters = filters_load(app.args.custom_filters)
     if app.args.inventory_source:
@@ -51,7 +51,7 @@ def main():
         reactor_args['installSignalHandlers'] = 0
         import werkzeug.serving
         wsgi = werkzeug.serving.run_with_reloader(wsgi)
-    print "Ready."
+    print("Ready.")
     wsgi()
 
 if __name__ == '__main__':

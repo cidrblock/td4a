@@ -31,7 +31,7 @@ class ExceptionHandler(object):
     def __call__(self, *args, **kwargs):
         try:
             return self.function(*args, **kwargs)
-        except Exception, error:
+        except Exception as error:
             self.error = error
             self.exc_type, self.exc_value, self.exc_traceback = sys.exc_info()
             self.tback = traceback.extract_tb(self.exc_traceback)
@@ -115,7 +115,7 @@ class ExceptionHandler(object):
                                    line_number=line_number)
 
     def unhandled(self):
-        print self.exc_type, self.exc_value, self.exc_traceback, self.tback, self.error
+        print(self.exc_type, self.exc_value, self.exc_traceback, self.tback, self.error)
         line_numbers = [x for x in self.tback if re.search('^<.*>$', x[0])]
         if line_numbers:
             line_number = line_numbers[0][1]
