@@ -13,7 +13,7 @@ setup(name='td4a',
       ],
       scripts=['td4a-server'],
       install_requires=[
-          'ansible==2.4.1.0',
+          'ansible==2.6.18',
           'Flask==0.12.2',
           'netaddr==0.7.19',
           'Twisted==17.9.0',
