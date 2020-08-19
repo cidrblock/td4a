@@ -96,9 +96,9 @@ def rest_render():
     """ render path
     """
     try:
-        print "Checking and parsing data..."
+        print("Checking and parsing data...")
         response = render(payload=request.json, filters=app.filters, typ="page")
-        print "Done."
+        print("Done.")
         return jsonify(response)
     except HandledException as error:
         return jsonify(error.json())

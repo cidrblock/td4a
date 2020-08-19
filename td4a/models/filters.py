@@ -13,7 +13,7 @@ def load_dir(directory):
     for entry in os.listdir(directory):
         if entry != '__init__.py' and entry.split('.')[-1] == 'py':
             filters = importlib.import_module(entry[:-3]).FilterModule().filters()
-            for key, value in filters.iteritems():
+            for key, value in filters.items():
                 filter_list.append((key, value))
     return filter_list
 

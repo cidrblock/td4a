@@ -34,7 +34,7 @@ def validation(payload):
         if errors:
             return {"p3": yaml.dump({"messages":errors})}
         return {"p3": yaml.dump({"messages":["validation passed"]})}
-    except UnknownType, error:
+    except UnknownType as error:
         error_message = str(error)
         lines = error_message.splitlines()
         message = [x for x in lines if x.startswith('Unknown type')]

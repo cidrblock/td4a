@@ -9,17 +9,16 @@ https://td4a.codethenetwork.com
 
 TD4A is a visual design aid for building and testing jinja2 templates.  It will combine data in yaml format with a jinja2 template and render the output.
 
-All jinja2 filters are supported along with the filter plugins from Ansible version 2.4.1.0.
+All jinja2 filters are supported along with the filter plugins from Ansible version 2.9.12
 
 ### Installation:
 
-#### using docker:
-
+##### using podman (or docker):
 ```
-docker pull cidrblock/td4a
+podman pull cidrblock/td4a
 ```
 
-The docker hub page can be found here:
+The container registry page can be found here:
 
 https://hub.docker.com/r/cidrblock/td4a/
 
@@ -39,9 +38,9 @@ https://pypi.python.org/pypi/td4a
 
 #### Simple
 
-##### using docker:
+##### using podman (or docker):
 ```
-docker run -p 5000:5000 cidrblock/td4a
+podman run -p 5000:5000 cidrblock/td4a
 ```
 
 ##### using the cli:
@@ -61,10 +60,9 @@ TD4A support two different modes of operation.
 
 #### Enabling a mode
 
-##### using docker:
-
+##### using podman (or docker):
 ```
-docker run  -p 5000:5000 \
+podman run  -p 5000:5000 \
             -it \
             cidrblock/td4a \
             td4a-server -m mode
@@ -81,13 +79,14 @@ where `mode` is either jinja2 (default) or schema
 
 #### Loading custom filter plugins (jinja2 mode only)
 
-##### using docker:
 
 TD4A supports custom filter plugins within the container. Pass your custom filter_plugins directory as a volume and use the -f option to specify to custom filter plugin directory.
+
+##### using podman (or docker):
 ```
-docker run  -p 5000:5000 \
+podman run  -p 5000:5000 \
             -it \
-            -v `pwd`/my_filter_plugins:/filter_plugins            
+            -v `pwd`/my_filter_plugins:/filter_plugins \
             cidrblock/td4a \
             td4a-server -f /filter_plugins
 ```
@@ -101,11 +100,13 @@ td4a-server -f ./my_filter_plugins
 
 #### Loading an ansible inventory (jinja2 and schema mode)
 
-##### using docker:
-
 Mount the inventory as `/inventory` in the container, and run TD4A with the `-i` option.
+
+
+##### using podman (or docker):
+
 ```
-docker run  -p 5000:5000 \
+podman run  -p 5000:5000 \
             -it \
             -v '/Users/me/github/ansible_network_inventory:/inventory' \
             cidrblock/td4a \
@@ -114,7 +115,7 @@ docker run  -p 5000:5000 \
 
 If environment variables are needed for a dynamic inventory, they can be passed to the docker container.
 ```
-docker run  -p 5000:5000 \
+podman run  -p 5000:5000 \
             -it \
             -v `pwd`/my_filter_plugins:/filter_plugins \
             -v '/Users/me/github/ansible_network_inventory:/inventory' \
@@ -142,10 +143,10 @@ The CouchDB needs to previously created.
 
 To enable link support, and add the link button to the UI, set the following environ variables:
 
-##### using docker:
+##### using podman (or docker):
 
 ```
-docker run  -p 5000:5000 \
+podman run  -p 5000:5000 \
             -v `pwd`/my_filter_plugins:/filter_plugins \
             -e "COUCH_USERNAME=admin" \
             -e "COUCH_PASSWORD=password" \
@@ -182,7 +183,7 @@ The UI is broken into three sections:
 
 ### Python version
 
-To date, this has only been tested with python 2.7.
+To date, this has only been tested with python 3.8.5.
 
 ### Development
 
