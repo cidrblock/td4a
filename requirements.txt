@@ -1,4 +1,4 @@
-ansible==2.9.12
+ansible==2.10.0
 Flask==1.1.2
 netaddr==0.8.0
 Twisted==20.3.0
