@@ -1,7 +1,7 @@
 ansible==2.9.12
 Flask==1.1.2
 netaddr==0.8.0
-Twisted==20.3.0
+Twisted==22.10.0
 requests==2.24.0
 ruamel.yaml==0.16.10
 genson==1.2.1
