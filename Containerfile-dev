@@ -1,0 +1,20 @@
+FROM python:3.8.5-alpine3.12
+
+# Update the packages
+RUN apk update
+
+# Install the ansible dependancies
+RUN apk add gcc libffi-dev musl-dev openssl-dev sshpass make \
+    && pip3 install --upgrade pip \
+    && rm -rf /var/cache/apk/*
+# RUN apk add py-crypto python-dev
+
+WORKDIR /app
+# Use -v $(pwd):/app
+COPY requirements.txt /app/
+
+# Install td4a
+RUN pip3 install -r /app/requirements.txt
+
+# Start td4a
+CMD [ "/app/td4a-server" ]

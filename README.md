@@ -204,3 +204,10 @@ The dependancies can be concatenated and minified using gulp.
 ```
 gulp
 ```
+
+Development container:
+
+```bash
+docker build -f Containerfile-dev . -t td4a-dev
+docker run --rm --name td4a-dev -p 5000:5000 -v $(pwd):/app td4a-dev ./td4a-server
+```
