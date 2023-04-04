@@ -20,6 +20,9 @@ setup(name='td4a',
           'requests==2.24.0',
           'ruamel.yaml==0.16.10',
           'genson==1.2.1',
-          'jsonschema==3.2.0'
+          'jsonschema==3.2.0',
+          'jinja2==3.0',
+          'werkzeug==2.0.3',
+          'itsdangerous==2.0.1',
       ],
       zip_safe=False)
