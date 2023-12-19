@@ -13,8 +13,12 @@ WORKDIR /app
 # Use -v $(pwd):/app
 COPY requirements.txt /app/
 
-# Install td4a
+# Install td4a dependencies
 RUN pip3 install -r /app/requirements.txt
+
+# Install td4a
+COPY td4a-server /app
+COPY td4a /app/td4a
 
 # Start td4a
 CMD [ "/app/td4a-server" ]
